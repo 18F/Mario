@@ -120,6 +120,16 @@ function renderMicroRow(dataRow) {
 	html +=      '</div>';
         return html;
 }
+function renderMicroRowFromCatalogItem(ci) {
+	var html = "";
+	html +=      ' <div class="result">';
+	html +=      '<span class="vendor">'+ ci.vendor + ' </span>'; 
+
+	html +=      '<span class="unitPrice">'+ '$'+numberWithCommas(ci.unit_price)+ ' </span>'; 
+	html +=      '<span class="result-details"> '+ci.description.substring(0,60)+ ' </span>'; 
+	html +=      '</div>';
+        return html;
+}
 var apisolrurl = "http://127.0.0.1/apisolr";
 var apisolrurlsession = "http://127.0.0.1/apisolr/session";
 var global_number_of_results_to_return = "10";
@@ -172,40 +182,40 @@ function recalcTotal() {
    var arrayLength = global_research_results.length;
    for (var i = 0; i < arrayLength; i++) {
       var rr = global_research_results[i];
-      alert("rr.Mean = "+rr.MeanValue());
-      total = total + rr.MeanValue();
+      total = total + rr.MeanUnitPrice();
    }
-   $('#totalprice').html(""+total/3);   
+   $('#totalprice').html(""+total/arrayLength);   
 }
 function processAjaxSearch0(dataFromSearch) {
    var rr = processAjaxSearch(dataFromSearch);
    global_research_results[0] = rr;
-   redrawDetailArea(dataFromSearch,0);
+   redrawDetailAreaFromResearchResult(rr,0);
    recalcTotal();
 }
 
 function processAjaxSearch1(dataFromSearch) {
    var rr = processAjaxSearch(dataFromSearch);
    global_research_results[1] = rr;
-   redrawDetailArea(dataFromSearch,1);
+   redrawDetailAreaFromResearchResult(rr,1);
    recalcTotal();
 }
 
 function processAjaxSearch2(dataFromSearch) {
    var rr = processAjaxSearch(dataFromSearch);
    global_research_results[2] = rr;
-   redrawDetailArea(dataFromSearch,2);
+   redrawDetailAreaFromResearchResult(rr,2);
    recalcTotal();
 }
 
-function redrawDetailArea(dictFromSearch,num) {
+function redrawDetailAreaFromResearchResult(rr,num) {
 	var detailAreaDiv = $("#"+'detailArea'+num);
 	detailAreaDiv.empty();
 	detailAreaDiv.append(global_wishlist.wish_items[num]);
-	for (var key in dictFromSearch) {
-            detailAreaDiv.append(renderMicroRow(dictFromSearch[key]));
+        var len = rr.orderItems.length;
+	for (var i = 0; i < len; i++) {
+            detailAreaDiv.append(renderMicroRowFromCatalogItem(rr.orderItems[i].ci));
         }
-	detailAreaDiv.append("<div>======</div>");
+	detailAreaDiv.append("<div>------------</div>");
 }
 
 function processAjaxSearch(dataFromSearch) {
@@ -229,10 +239,17 @@ function processAjaxSearch(dataFromSearch) {
     var rr = new ResearchResults();
     var i = 0;
     for (var key in dataFromSearch) {
-        rr.orderItems[i] = dataFromSearch[key].unitPrice;
+        var oi = new OrderItem();
+        // This is improvable, basically, we want 
+        // to build a good catalog item here...
+        rr.orderItems[i] = oi;
+        d = dataFromSearch[key];
+        oi.ci.unit_price = parseFloat(d.unitPrice);
+        oi.ci.vehicle = d.awardIdIdv;
+        oi.ci.description = d.productDescription;
+        oi.ci.vendor = d.vendor;
         i++;
     }
-    alert("returning "+rr);
     return rr;
 }
 </script>

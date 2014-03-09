@@ -21,6 +21,7 @@ CatalogItem = function CatalogItem() {
     this.vehicle = "";
     this.SKU = "";
     this.unit_price = 0;
+    this.vendor = "";
     this.compliances = new Array();
 }
 CatalogItem.prototype = new CatalogItem;
@@ -65,8 +66,13 @@ ResearchResults = function() {
     this.orderItems = new Array();
 // Obviously, this is a not implemented yet...
 /// be sure to put a test in here.
-    this.MeanValue = function() {
-	return 15;
+    this.MeanUnitPrice = function() {
+	var len = this.orderItems.length;
+	var total = 0.0;
+	for (var i = 0; i < len; i++) {
+	    total = total + this.orderItems[i].ci.unit_price;
+	}
+	return total / len;
     };
 }
 
