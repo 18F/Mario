@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+  <html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Project Mario</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+  </head>
+    <body>
+      <h1>Product List</h1>
+      <script src="http://code.jquery.com/jquery.js"></script>
+<!-- Obviously, this sucks, and needs to be replaced with somethin web hosted  -->
+      <script src="file:///Users/RobertRead/projects/mario/mariotype.js"></script>
+
+      <form>
+	<div>
+         <input id="small_search_string0"  type="text" placeholder="Item #1">
+	</div>
+	<div>
+         <input id="small_search_string1" type="text" placeholder="Item #2">
+	</div>
+	<div>
+         <input id="small_search_string2" type="text" placeholder="Item #3">
+	</div>
+         <input type="button" id="searchButton" value="Search" onclick="performSearch();">
+       </form>
+
+<div>
+<h2>GSA Advantage</h2>
+	<div id="detailArea0"></div>
+	<div id="detailArea1"></div>
+	<div id="detailArea2"></div>
+	<div id="summary">
+	  <p>Total Price:</p>
+	  <p id="totalprice"> </p>
+	</div>
+	<div>
+         <input type="button" id="gsaApproval" value="Send for Approval" onclick="sendForApproval();">
+	 </div>
+<h2>Staples</h2>
+</div>
+
+    </body>
+  </html>
+
+<script>
+
+// code taken from stackoverflow
+var qs = (function(a) {
+    if (a == "") return {};
+    var b = {};
+    for (var i = 0; i < a.length; ++i)
+    {
+        var p=a[i].split('=');
+        if (p.length != 2) continue;
+        b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+    }
+    return b;
+})(window.location.search.substr(1).split('&'));
+
+// I sort of need to take these from the environment or from cookies
+// or something---dont' have a great way of doing this at present.
+session_id = qs["p3session_id"];
+acsrf = qs["p3acsrf"];
+
+username = qs["username"];
+password = qs["password"];
+
+// We hide the search button if you haven't got a session or a userid/password pair to work with
+if (((typeof session_id === 'undefined') || 
+    (typeof acsrf === 'undefined'))
+    && 
+(((typeof username === 'undefined') || 
+    (typeof password === 'undefined')))) {
+   document.getElementById('searchButton').style.display = 'none';
+} 
+
+
+$("#max").click(function () {
+
+// Here we want to do a redirect or a form submission to
+// get us to the P3 server to handle the GUI part, and 
+// we need to tell it to redirect back to us here!
+
+    window.location.replace("http://127.0.0.1/apisolr/GetTokensViaMax?redirectbackto=http://127.0.0.1/microApiUser/TestPage.html");
+
+});
+
+
+var standardFieldDescriptor = [];
+standardFieldDescriptor["score"] = "Query Relevance";
+standardFieldDescriptor["unitPrice"] = "Unit Price";
+standardFieldDescriptor["unitsOrdered"] = "Units Ordered";
+standardFieldDescriptor["orderDate"] = "Date";
+standardFieldDescriptor["vendor"] = "Vendor";
+standardFieldDescriptor["productDescription"] = "Product Description";
+standardFieldDescriptor["longDescription"] = "Long Description";
+standardFieldDescriptor["contractingAgency"] = "Contracting Agency";
+standardFieldDescriptor["awardIdIdv"] = "Award ID/IDV";
+standardFieldDescriptor["commodityType"] = "Commodity Type";
+standardFieldDescriptor["psc"] = "PSC";
+
+function numberWithCommas(x) {
+    var parts = x.toString().split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
+}
+
+
+function renderMicroRow(dataRow) {
+	var html = "";
+	html +=      ' <div class="result">';
+	html +=      '<span class="vendor">'+ dataRow.vendor + ' </span>'; 
+
+	html +=      '<span class="unitPrice">'+ '$'+numberWithCommas(dataRow.unitPrice)+ ' </span>'; 
+	html +=      '<span class="result-details"> '+dataRow.productDescription.substring(0,60)+ ' </span>'; 
+	html +=      '</div>';
+        return html;
+}
+var apisolrurl = "http://127.0.0.1/apisolr";
+var apisolrurlsession = "http://127.0.0.1/apisolr/session";
+var global_number_of_results_to_return = "10";
+var global_wishlist = new WishList();
+function performSearch() {
+    global_wishlist.wish_items[0] = $('#small_search_string0').val();
+    global_wishlist.wish_items[1] = $('#small_search_string1').val();
+    global_wishlist.wish_items[2] = $('#small_search_string2').val();
+
+
+// This is the session version, but more convenient for us now 
+// is the username password version
+    searchForItem(global_wishlist.wish_items[0],global_number_of_results_to_return,
+			'processAjaxSearch'+0);
+    searchForItem(global_wishlist.wish_items[1],global_number_of_results_to_return,
+			'processAjaxSearch'+1);
+    searchForItem(global_wishlist.wish_items[2],global_number_of_results_to_return,
+			'processAjaxSearch'+2);
+}
+
+function searchForItem(query,num,callback) {
+// We really need to figure out how to curry the query and the number into 
+// the callback--should be easy in javascript, since it is so LISP-like
+$.ajax({
+    type: 'GET',
+    url: apisolrurl,
+    async: false,
+    jsonpCallback: callback,
+    contentType: "application/json",
+    dataType: 'jsonp',
+    data: {
+       p3username: username,
+       p3password: password,
+       numRows: num,
+       search_string: query,
+       psc_pattern: '*'
+    },
+    error: function(e) {
+       alert("e.message = "+e.message);
+       console.log(e.message);
+    }
+  });
+}
+function recalcTotal() {
+// This needs to be computed from the research results...
+   var total = 357.0;
+   $('#totalprice').html(""+total);   
+}
+function processAjaxSearch0(dataFromSearch) {
+   var rr = processAjaxSearch(dataFromSearch);
+   redrawDetailArea(dataFromSearch,0);
+   recalcTotal();
+}
+
+function processAjaxSearch1(dataFromSearch) {
+   var rr = processAjaxSearch(dataFromSearch);
+   redrawDetailArea(dataFromSearch,1);
+   recalcTotal();
+}
+
+function processAjaxSearch2(dataFromSearch) {
+   var rr = processAjaxSearch(dataFromSearch);
+   redrawDetailArea(dataFromSearch,2);
+   recalcTotal();
+}
+
+function redrawDetailArea(dictFromSearch,num) {
+	var detailAreaDiv = $("#"+'detailArea'+num);
+	detailAreaDiv.empty();
+	detailAreaDiv.append(global_wishlist.wish_items[num]);
+	for (var key in dictFromSearch) {
+            detailAreaDiv.append(renderMicroRow(dictFromSearch[key]));
+        }
+	detailAreaDiv.append("<div>======</div>");
+}
+
+function processAjaxSearch(dataFromSearch) {
+// If we timed out or failed to authenticate, we need to alert the user.
+    if (!(dataFromSearch != null && typeof dataFromSearch === 'object')) {
+		 alert("No results returned.");
+		 return;
+    }
+    if ((typeof dataFromSearch) == 'undefined') {
+		 alert("No results returned.");
+		 return;
+    }
+    if (dataFromSearch[0] === undefined) {
+		 alert("No results returned.");
+		 return;
+    }
+		 
+    if (dataFromSearch[0]["status"] && (dataFromSearch[0]["status"] == "BadAuthentication")) {
+        alert("Unable to Authenticate. Probably your session timed-out. Please log in again.");	 
+    }
+/*
+    var rr = new ResearchResults();
+    var int i = 0;
+    for (var key in dataFromSearch) {
+        rr.orderItems[i] = dataFromSearch[key].unitPrice;
+        i++;
+    }
+    return rr;
+*/
+}
+</script>
