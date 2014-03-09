@@ -124,6 +124,8 @@ var apisolrurl = "http://127.0.0.1/apisolr";
 var apisolrurlsession = "http://127.0.0.1/apisolr/session";
 var global_number_of_results_to_return = "10";
 var global_wishlist = new WishList();
+var global_research_results = new Array();
+
 function performSearch() {
     global_wishlist.wish_items[0] = $('#small_search_string0').val();
     global_wishlist.wish_items[1] = $('#small_search_string1').val();
@@ -165,23 +167,33 @@ $.ajax({
 }
 function recalcTotal() {
 // This needs to be computed from the research results...
-   var total = 357.0;
-   $('#totalprice').html(""+total);   
+   var total = 0.0;
+   
+   var arrayLength = global_research_results.length;
+   for (var i = 0; i < arrayLength; i++) {
+      var rr = global_research_results[i];
+      alert("rr.Mean = "+rr.MeanValue());
+      total = total + rr.MeanValue();
+   }
+   $('#totalprice').html(""+total/3);   
 }
 function processAjaxSearch0(dataFromSearch) {
    var rr = processAjaxSearch(dataFromSearch);
+   global_research_results[0] = rr;
    redrawDetailArea(dataFromSearch,0);
    recalcTotal();
 }
 
 function processAjaxSearch1(dataFromSearch) {
    var rr = processAjaxSearch(dataFromSearch);
+   global_research_results[1] = rr;
    redrawDetailArea(dataFromSearch,1);
    recalcTotal();
 }
 
 function processAjaxSearch2(dataFromSearch) {
    var rr = processAjaxSearch(dataFromSearch);
+   global_research_results[2] = rr;
    redrawDetailArea(dataFromSearch,2);
    recalcTotal();
 }
@@ -214,14 +226,13 @@ function processAjaxSearch(dataFromSearch) {
     if (dataFromSearch[0]["status"] && (dataFromSearch[0]["status"] == "BadAuthentication")) {
         alert("Unable to Authenticate. Probably your session timed-out. Please log in again.");	 
     }
-/*
     var rr = new ResearchResults();
-    var int i = 0;
+    var i = 0;
     for (var key in dataFromSearch) {
         rr.orderItems[i] = dataFromSearch[key].unitPrice;
         i++;
     }
+    alert("returning "+rr);
     return rr;
-*/
 }
 </script>

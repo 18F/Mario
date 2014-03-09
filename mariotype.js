@@ -63,10 +63,14 @@ ResearchResults = function() {
     this.type = "research_reults";
     this.numOptions = 0;
     this.orderItems = new Array();
+// Obviously, this is a not implemented yet...
+/// be sure to put a test in here.
+    this.MeanValue = function() {
+	return 15;
+    };
 }
 
 ResearchResults.prototpye = new ResearchResults;
-
 
 // The ShopResearchAPI returns CatalogItems (though they may be incomplete.
 // The CatalogItems may be processed to create OrderItems.
