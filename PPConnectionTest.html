@@ -19,13 +19,20 @@
       <form>
 	<div>
          <input id="small_search_string0"  type="text" placeholder="Item #1">
+        <span id="price0"> </span>
 	</div>
 	<div>
          <input id="small_search_string1" type="text" placeholder="Item #2">
+        <span id="price1"> </span>
 	</div>
 	<div>
          <input id="small_search_string2" type="text" placeholder="Item #3">
+        <span id="price2"> </span>
 	</div>
+	<div id="summaryArea">
+	         Total Price: <span id="summary_price"> </span>
+	</div>
+
          <input type="button" id="searchButton" value="Search" onclick="performSearch();">
        </form>
 
@@ -185,7 +192,8 @@ function recalcTotal() {
       var rr = global_research_results[i];
       total = total + rr.MeanUnitPrice();
    }
-   $('#totalprice').html(""+total/arrayLength);   
+   $('#totalprice').html(""+total);   
+   $('#summary_price').html(""+total);   
 }
 function processAjaxSearch0(dataFromSearch) {
    var rr = processAjaxSearch(dataFromSearch);
@@ -216,6 +224,8 @@ function redrawDetailAreaFromResearchResult(rr,num) {
 	for (var i = 0; i < len; i++) {
             detailAreaDiv.append(renderMicroRowFromCatalogItem(rr.orderItems[i].ci));
         }
+	var priceSpan = $("#"+'price'+num);
+        priceSpan.html(rr.MeanUnitPrice());
 	detailAreaDiv.append("<div>------------</div>");
 }
 
