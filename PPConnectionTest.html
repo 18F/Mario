@@ -10,6 +10,7 @@
 
   </head>
     <body>
+<span>
       <h1>Product List</h1>
 <!--      <script src="http://code.jquery.com/jquery.js"></script> -->
 <!-- Obviously, this sucks, and needs to be replaced with somethin web hosted  -->
@@ -29,14 +30,18 @@
          <input id="small_search_string2" type="text" placeholder="Item #3">
         <span id="price2"> </span>
 	</div>
+         <input type="button" id="searchButton" value="Search" onclick="performSearch();">
+       </form>
+</span>
+<span>
 	<div id="summaryArea">
 	         Total Price: <span id="summary_price"> </span>
 	</div>
+</span>
 
-         <input type="button" id="searchButton" value="Search" onclick="performSearch();">
-       </form>
-
-<div>
+<h2>Cart Summary</h2>
+<div id="listcart_area">
+</div>
 <h2>GSA Advantage</h2>
 	<div id="detailArea0"></div>
 	<div id="detailArea1"></div>
@@ -55,7 +60,9 @@
   </html>
 
 <script>
-
+var ShoppingMalls = new Array();
+ShoppingMalls[0] = "gsa";
+ShoppingMalls[1] = "staples";
 // code taken from stackoverflow
 var qs = (function(a) {
     if (a == "") return {};
@@ -142,6 +149,38 @@ var apisolrurl = "http://127.0.0.1/apisolr";
 var apisolrurlsession = "http://127.0.0.1/apisolr/session";
 var global_number_of_results_to_return = "10";
 var global_wishlist = new WishList();
+
+// Here is where we will track the various carts.
+// Eventually this will be highly expandable, but for now 
+// this we will have two: GSA Advantage and Staples.
+var list_carts = new Array();
+list_carts[0] = new ListCart("GSA Advantage");
+list_carts[1] = new ListCart("Staples");
+
+render_listcarts();
+
+function renderListCart(lc) {
+     var html = "";
+     html += "<form>\n";
+     html += "<p>"+lc.name+"</p>\n";
+     html += '<input type="button" id="searchButton" value="Search" onclick="performSearch();">\n';
+     html += '</form>\n';
+     return html;
+
+}
+
+function render_listcarts() {
+      var listcart_area = $("#listcart_area");
+      listcart_area.empty();
+      var len = list_carts.length;
+      for (var i = 0; i < len; i++) {
+	 lc = list_carts[i];
+         listcart_area.append(renderListCart(lc));
+	 listcart_area.append("<div>* * *</div>");
+      }
+	
+}
+
 var global_research_results = new Array();
 
 function performSearch() {
@@ -149,20 +188,21 @@ function performSearch() {
     global_wishlist.wish_items[1] = $('#small_search_string1').val();
     global_wishlist.wish_items[2] = $('#small_search_string2').val();
 
-
 // This is the session version, but more convenient for us now 
 // is the username password version
-    searchForItem(global_wishlist.wish_items[0],global_number_of_results_to_return,
-			'processAjaxSearch'+0);
-    searchForItem(global_wishlist.wish_items[1],global_number_of_results_to_return,
-			'processAjaxSearch'+1);
-    searchForItem(global_wishlist.wish_items[2],global_number_of_results_to_return,
-			'processAjaxSearch'+2);
+    searchForItem(0,global_wishlist.wish_items[0],global_number_of_results_to_return,
+			'processAjaxSearchCallback');
+    searchForItem(1,global_wishlist.wish_items[1],global_number_of_results_to_return,
+			'processAjaxSearchCallback');
+    searchForItem(2,global_wishlist.wish_items[2],global_number_of_results_to_return,
+			'processAjaxSearchCallback');
 }
 
-function searchForItem(query,num,callback) {
+function searchForItem(index,query,num,callback) {
 // We really need to figure out how to curry the query and the number into 
 // the callback--should be easy in javascript, since it is so LISP-like
+ var cd = ShoppingMalls[0]+ "X"+index;
+alert("cd ="+cd);
 $.ajax({
     type: 'GET',
     url: apisolrurl,
@@ -171,6 +211,7 @@ $.ajax({
     contentType: "application/json",
     dataType: 'jsonp',
     data: {
+       clientdata: cd,
        p3username: username,
        p3password: password,
        numRows: num,
@@ -190,12 +231,39 @@ function recalcTotal() {
    var arrayLength = global_research_results.length;
    for (var i = 0; i < arrayLength; i++) {
       var rr = global_research_results[i];
+      if (rr) {
       total = total + rr.MeanUnitPrice();
+} else {
+// We haven't got the answer yet!
+}
    }
    $('#totalprice').html(""+total);   
-   $('#summary_price').html(""+total);   
+   $('#summary_price').html(""+total);  
+   render_listcarts();
 }
+function processAjaxSearchCallback(dataFromSearch) {
+   alert("yep!");
+   clientdata = dataFromSearch["clientdata"];
+   alert("dataFromSearch.clientData"+clientdata);
+   // This is very weak, need to be strengthened, I will
+   // use the name of the cart (symbolically) first followed by
+   // a slash and the number.
+   var parts = clientdata.split("X");
+   var name = parts[0];
+   var num = parts[1];
+
+alert("name = "+name);
+alert("num = "+num);
+   var inum = parseInt(num);
+   var rr = processAjaxSearch(dataFromSearch);
+alert("rr = "+rr);
+   global_research_results[inum] = rr;
+   redrawDetailAreaFromResearchResult(rr,inum);
+   recalcTotal();
+}
+
 function processAjaxSearch0(dataFromSearch) {
+   alert("dataFromSearch.clientData"+dataFromSearch["clientdata"]);
    var rr = processAjaxSearch(dataFromSearch);
    global_research_results[0] = rr;
    redrawDetailAreaFromResearchResult(rr,0);
@@ -203,6 +271,7 @@ function processAjaxSearch0(dataFromSearch) {
 }
 
 function processAjaxSearch1(dataFromSearch) {
+   alert("dataFromSearch.clientData"+dataFromSearch["clientdata"]);
    var rr = processAjaxSearch(dataFromSearch);
    global_research_results[1] = rr;
    redrawDetailAreaFromResearchResult(rr,1);
@@ -210,6 +279,7 @@ function processAjaxSearch1(dataFromSearch) {
 }
 
 function processAjaxSearch2(dataFromSearch) {
+   alert("dataFromSearch.clientData"+dataFromSearch["clientdata"]);
    var rr = processAjaxSearch(dataFromSearch);
    global_research_results[2] = rr;
    redrawDetailAreaFromResearchResult(rr,2);
@@ -250,6 +320,7 @@ function processAjaxSearch(dataFromSearch) {
     var rr = new ResearchResults();
     var i = 0;
     for (var key in dataFromSearch) {
+        if (key != "clientdata") {
         var oi = new OrderItem();
         // This is improvable, basically, we want 
         // to build a good catalog item here...
@@ -260,6 +331,7 @@ function processAjaxSearch(dataFromSearch) {
         oi.ci.description = d.productDescription;
         oi.ci.vendor = d.vendor;
         i++;
+        }
     }
     return rr;
 }

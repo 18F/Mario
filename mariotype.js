@@ -48,8 +48,10 @@ WishList = function() {
 }
 WishList.prototype = new WishList;
 
-ListCart = function() {
+ListCart = function(name) {
     this.type = "listchart";
+    this.name = name;
+    this.searchCallBackName = "";
     this.items = new Array(0);
     this.addItem = function (item) {
 	};
