@@ -202,21 +202,21 @@ function searchForItem(index,query,num,callback) {
 // We really need to figure out how to curry the query and the number into 
 // the callback--should be easy in javascript, since it is so LISP-like
  var cd = ShoppingMalls[0]+ "X"+index;
-alert("cd ="+cd);
 $.ajax({
     type: 'GET',
     url: apisolrurl,
     async: false,
-    jsonpCallback: callback,
     contentType: "application/json",
     dataType: 'jsonp',
     data: {
-       clientdata: cd,
        p3username: username,
        p3password: password,
        numRows: num,
        search_string: query,
        psc_pattern: '*'
+    },
+    success: function (data) {
+        processAjaxSearchCallback(data,index,name);
     },
     error: function(e) {
        alert("e.message = "+e.message);
@@ -232,57 +232,19 @@ function recalcTotal() {
    for (var i = 0; i < arrayLength; i++) {
       var rr = global_research_results[i];
       if (rr) {
-      total = total + rr.MeanUnitPrice();
-} else {
-// We haven't got the answer yet!
-}
+          total = total + rr.MeanUnitPrice();
+      } else {
+    // We haven't got the answer yet!
+      }
    }
    $('#totalprice').html(""+total);   
    $('#summary_price').html(""+total);  
    render_listcarts();
 }
-function processAjaxSearchCallback(dataFromSearch) {
-   alert("yep!");
-   clientdata = dataFromSearch["clientdata"];
-   alert("dataFromSearch.clientData"+clientdata);
-   // This is very weak, need to be strengthened, I will
-   // use the name of the cart (symbolically) first followed by
-   // a slash and the number.
-   var parts = clientdata.split("X");
-   var name = parts[0];
-   var num = parts[1];
-
-alert("name = "+name);
-alert("num = "+num);
-   var inum = parseInt(num);
+function processAjaxSearchCallback(dataFromSearch,index,name) {
    var rr = processAjaxSearch(dataFromSearch);
-alert("rr = "+rr);
-   global_research_results[inum] = rr;
-   redrawDetailAreaFromResearchResult(rr,inum);
-   recalcTotal();
-}
-
-function processAjaxSearch0(dataFromSearch) {
-   alert("dataFromSearch.clientData"+dataFromSearch["clientdata"]);
-   var rr = processAjaxSearch(dataFromSearch);
-   global_research_results[0] = rr;
-   redrawDetailAreaFromResearchResult(rr,0);
-   recalcTotal();
-}
-
-function processAjaxSearch1(dataFromSearch) {
-   alert("dataFromSearch.clientData"+dataFromSearch["clientdata"]);
-   var rr = processAjaxSearch(dataFromSearch);
-   global_research_results[1] = rr;
-   redrawDetailAreaFromResearchResult(rr,1);
-   recalcTotal();
-}
-
-function processAjaxSearch2(dataFromSearch) {
-   alert("dataFromSearch.clientData"+dataFromSearch["clientdata"]);
-   var rr = processAjaxSearch(dataFromSearch);
-   global_research_results[2] = rr;
-   redrawDetailAreaFromResearchResult(rr,2);
+   global_research_results[index] = rr;
+   redrawDetailAreaFromResearchResult(rr,index);
    recalcTotal();
 }
 
