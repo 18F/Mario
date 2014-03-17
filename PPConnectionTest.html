@@ -42,19 +42,6 @@
 <h2>Cart Summary</h2>
 <div id="listcart_area">
 </div>
-<h2>GSA Advantage</h2>
-	<div id="detailArea0"></div>
-	<div id="detailArea1"></div>
-	<div id="detailArea2"></div>
-	<div id="summary">
-	  <p>Total Price:</p>
-	  <p id="totalprice"> </p>
-	</div>
-	<div>
-         <input type="button" id="gsaApproval" value="Send for Approval" onclick="sendForApproval();">
-	 </div>
-<h2>Staples</h2>
-</div>
 
     </body>
   </html>
@@ -124,7 +111,6 @@ function numberWithCommas(x) {
     return parts.join(".");
 }
 
-
 function renderMicroRow(dataRow) {
 	var html = "";
 	html +=      ' <div class="result">';
@@ -155,53 +141,81 @@ var global_wishlist = new WishList();
 // this we will have two: GSA Advantage and Staples.
 var list_carts = new Array();
 list_carts[0] = new ListCart("GSA Advantage");
+list_carts[0].clientdata = 0;
+list_carts[0].modifyQuery = function (query) {
+     return query + " " + "GSAdvantage";
+}
 list_carts[1] = new ListCart("Staples");
+list_carts[1].clientdata = 1;
+list_carts[1].modifyQuery = function (query) {
+     return query + " " + "Staples";
+}
+list_carts[2] = new ListCart("Office Depot");
+list_carts[2].clientdata = 2;
+list_carts[2].modifyQuery = function (query) {
+     return query + " " + "Office Depot";
+}
+
 
 render_listcarts();
 
+// This relies on the clientdata having an standard index number.
 function renderListCart(lc) {
      var html = "";
+
      html += "<form>\n";
      html += "<p>"+lc.name+"</p>\n";
-     html += '<input type="button" id="searchButton" value="Search" onclick="performSearch();">\n';
+     var buttonId = "searchButton"+lc.clientdata;
+     html += '<input type="button" id="'+buttonId+'" value="Search" onclick="performSearchForOneCart('+lc.clientdata+');">\n';
      html += '</form>\n';
+     html += '<div id="listcart_area'+lc.clientdata+'">\n';
+     html += '</div>\n';
      return html;
-
 }
 
 function render_listcarts() {
       var listcart_area = $("#listcart_area");
-      listcart_area.empty();
+//      listcart_area.empty();
       var len = list_carts.length;
       for (var i = 0; i < len; i++) {
+         var ele = $('#listcart_area'+i);
 	 lc = list_carts[i];
          listcart_area.append(renderListCart(lc));
-	 listcart_area.append("<div>* * *</div>");
+       	 listcart_area.append("<div>* * *</div>");
       }
-	
 }
 
 var global_research_results = new Array();
 
-function performSearch() {
+function performSearchForOneCart(id) {
+   readGlobalWishList();
+   var i = 0;
+   var cd = ShoppingMalls[id]+ "X"+id;
+   debugger;
+   for(i = 0; i < global_wishlist.wish_items.length; i++) {
+      var mod_query = list_carts[id].modifyQuery(global_wishlist.wish_items[i]);
+      searchForItem(id,mod_query,global_number_of_results_to_return,
+			'processAjaxSearchCallback');
+    }
+}
+
+// This needs to be made dynamic...
+function readGlobalWishList() {
     global_wishlist.wish_items[0] = $('#small_search_string0').val();
     global_wishlist.wish_items[1] = $('#small_search_string1').val();
     global_wishlist.wish_items[2] = $('#small_search_string2').val();
+}
 
-// This is the session version, but more convenient for us now 
-// is the username password version
-    searchForItem(0,global_wishlist.wish_items[0],global_number_of_results_to_return,
-			'processAjaxSearchCallback');
-    searchForItem(1,global_wishlist.wish_items[1],global_number_of_results_to_return,
-			'processAjaxSearchCallback');
-    searchForItem(2,global_wishlist.wish_items[2],global_number_of_results_to_return,
-			'processAjaxSearchCallback');
+function performSearch() {
+   for(var i = 0; i < list_carts.length; i++) {
+       performSearchForOneCart(i);
+   }
 }
 
 function searchForItem(index,query,num,callback) {
 // We really need to figure out how to curry the query and the number into 
 // the callback--should be easy in javascript, since it is so LISP-like
- var cd = ShoppingMalls[0]+ "X"+index;
+alert("query"+query);
 $.ajax({
     type: 'GET',
     url: apisolrurl,
@@ -224,6 +238,7 @@ $.ajax({
     }
   });
 }
+
 function recalcTotal() {
 // This needs to be computed from the research results...
    var total = 0.0;
@@ -239,26 +254,27 @@ function recalcTotal() {
    }
    $('#totalprice').html(""+total);   
    $('#summary_price').html(""+total);  
-   render_listcarts();
 }
+
 function processAjaxSearchCallback(dataFromSearch,index,name) {
+   debugger;
    var rr = processAjaxSearch(dataFromSearch);
    global_research_results[index] = rr;
    redrawDetailAreaFromResearchResult(rr,index);
    recalcTotal();
 }
 
-function redrawDetailAreaFromResearchResult(rr,num) {
-	var detailAreaDiv = $("#"+'detailArea'+num);
-	detailAreaDiv.empty();
-	detailAreaDiv.append(global_wishlist.wish_items[num]);
-        var len = rr.orderItems.length;
-	for (var i = 0; i < len; i++) {
-            detailAreaDiv.append(renderMicroRowFromCatalogItem(rr.orderItems[i].ci));
-        }
-	var priceSpan = $("#"+'price'+num);
-        priceSpan.html(rr.MeanUnitPrice());
-	detailAreaDiv.append("<div>------------</div>");
+function redrawDetailAreaFromResearchResult(rr,index) {
+   var listcart_area = $("#listcart_area");
+   var cd = list_carts[index].clientdata;
+   var ele = $('#listcart_area'+cd);
+//   ele.empty();
+   var html = "";
+   for (var i = 0; i < rr.orderItems.length; i++) {
+       var ci = rr.orderItems[i].ci;
+       html += renderMicroRowFromCatalogItem(ci);
+   }
+   ele.append(html);
 }
 
 function processAjaxSearch(dataFromSearch) {
