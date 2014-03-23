@@ -34,3 +34,17 @@ describe("Mario", function(){
        });
    }); 
 });
+
+describe("Mario", function(){
+  describe("C2ResearchAPI Tests", function(){
+       it("C2Reasearch Returns some an example that is well-formed", function(){
+	   var c2 = mock_C2ResearchAPI;
+	   var first = c2.get("1");
+           expect(first.name).to.equal("Rob's Magical Mystery Cart");
+           expect(first.items[0].units).to.equal(50);
+
+           expect(first.items[1].ci.SKU).to.equal("535-SKU-ACE");
+           expect(first.items[1].units).to.equal(5);
+       });
+   }); 
+});

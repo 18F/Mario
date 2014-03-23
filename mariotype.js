@@ -14,10 +14,19 @@ function Compliance() {
 }
 Compliance.prototype = new Compliance;
 
+disableVeteranOwnedBusiness = new Compliance();
+disableVeteranOwnedBusiness.name = "DVOB";
+
+womanOwnedBusiness = new Compliance();
+womanOwnedBusiness.name = "WOB";
+
+
 CatalogItem = function CatalogItem() {
     // We will allow the description to be versioned and to 
     // develop over time.
+    this.name = "";
     this.description = "";
+    this.detail = "";
     this.vehicle = "";
     this.SKU = "";
     this.unit_price = 0;
@@ -111,4 +120,62 @@ listcart = new ListCart;
 
 
 mariotype_magic_number = 5;
+
+
+
+// The C2SearchAPI returns Communicarts (though they may be incomplete).
+C2ResearchAPI = function(num,items) {
+    this.type = "c2_re_api";
+    this.num = num;
+    this.items = items;
+    // return a Cart based on its id
+    this.get = function(cartId) {
+	};
+    // return a set of ids (up to limit) matching the query
+    this.search = function(query,limit) {
+	};
+    }
+
+C2ResearchAPI.prototype = new C2ResearchAPI;
+
+var example_carts = new Array();
+var first = new ListCart();
+first.name = "Rob's Magical Mystery Cart";
+first.items = new Array();
+first.items[0] = new OrderItem();
+first.items[0].units = 50;
+first.items[0].ci = new CatalogItem();
+first.items[0].ci.name = "shredder";
+first.items[0].ci.description = "A +5 Magic Shredder that feels Good and Light.";
+first.items[0].ci.detail = "These shredders are the best non-artifact shredders allowed in the game.";
+first.items[0].ci.vehicle = "GSA Advantage";
+first.items[0].ci.SKU = "535-SKU-ZOQ";
+first.items[0].ci.unit_price = 1001;
+first.items[0].ci.vendor = "Shredders-R-Us";
+first.items[0].ci.compliances[0] = disableVeteranOwnedBusiness;
+
+first.items[1] = new OrderItem();
+first.items[1].units = 5;
+first.items[1].ci = new CatalogItem();
+first.items[1].ci.name = "highlighter";
+first.items[1].ci.description = "Yellow highlighters that are very, very, timid.";
+first.items[1].ci.detail = "These highlighters are so yellow, they are chicken.";
+first.items[1].ci.vehicle = "GSA Advantage";
+first.items[1].ci.SKU = "535-SKU-ACE";
+first.items[1].ci.unit_price = 6.35;
+first.items[1].ci.vendor = "Office Surplus";
+first.items[1].ci.compliances[0] = womanOwnedBusiness;
+
+example_carts['1'] = first;
+
+mock_C2ResearchAPI = new C2ResearchAPI;
+
+mock_C2ResearchAPI.get = function(cartId) {
+    return example_carts[cartId];
+}
+
+mock_C2ResearchAPI.search = function(query,limit) {
+
+}
+
 

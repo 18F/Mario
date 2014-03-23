@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!-- This site was created in Webflow. http://www.webflow.com-->
+<!-- Last Published: Tue Mar 11 2014 17:46:36 GMT+0000 (UTC) -->
+<html data-wf-site="531e1ac95fe5f2ee6d0000c2">
+  <head>
+    <meta charset="utf-8">
+  <title>Communicart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="css/webflow.css">
+  <link rel="stylesheet" type="text/css" href="css/communicart.webflow.css">
+  <script>
+    if (/mobile/i.test(navigator.userAgent)) document.documentElement.className += ' w-mobile';
+  </script>
+  <script src="file:///Users/RobertRead/projects/mario/jquery.min.js"></script>
+  <script src="file:///Users/RobertRead/projects/mario/mariotype.js"></script>
+
+  <link rel="shortcut icon" type="image/x-icon" href="https://y7v4p6k4.ssl.hwcdn.net/placeholder/favicon.ico">
+  <!--[if lt IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.min.js"></script><![endif]-->
+
+  </head>
+    <body>
+ <div class="background-container">
+    <div class="w-container main-container">
+      <div>
+        <div class="w-container">
+          <h1>Q1 Supplies for Marketing Team</h1>
+          <div class="w-row">
+      <div>
+        <div>
+          <div class="w-container comments">
+            <div>
+              <h4>Comments (3)</h4>
+              <p><strong>Marsha on Feb 5, 2014</strong>
+              </p>
+              <p>This looks great. I will review and indicate which ones to go ahead and buy.</p>
+              <p><strong>Jim on Feb 1, 2014</strong>
+              </p>
+              <p>Let me know what you think about these.</p>
+              <p><strong>Marsha on Feb 1, 2014</strong>
+              </p>
+              <p>Hi Jim, Here is a list of supplies we’ll need for the team. Please fill out the details. I’m looking forward to see what you find! 1. Bic Pens (the kind we already have) – Qty 150 2. Notepads: Try something new this time. Maybe slightly
+                smaller ones. People have said they don't like the 8.5 x 11 version.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+        <div>
+          <h2>Cart Summary</h2>
+          <div id="listcart_area">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script type="text/javascript" src="js/webflow.js"></script>
+
+  </html>
+
+<script>
+// code taken from stackoverflow
+var qs = (function(a) {
+    if (a == "") return {};
+    var b = {};
+    for (var i = 0; i < a.length; ++i)
+    {
+        var p=a[i].split('=');
+        if (p.length != 2) continue;
+        b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+    }
+    return b;
+})(window.location.search.substr(1).split('&'));
+
+
+
+
+function numberWithCommas(x) {
+    var parts = x.toString().split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
+}
+
+function renderResultItem(orderItem) {
+	var html = "";
+        html +=   ' <div class="w-container results-list">';
+
+	html +=      ' <div class="w-row result-item">';
+
+        html +=     '<div class="w-col w-col-2">';
+        html +=      '<p><strong>'+orderItem.ci.name+'</strong></p>';
+        html +=     '</div>';
+
+        html +=     '<div class="w-col w-col-2">';
+        html +=      '<p><strong>'+orderItem.ci.description.substring(0,60)+'</strong></p>';
+        html +=     '</div>';
+
+        html +=     '<div class="w-col w-col-2">';
+        html +=      '<p><strong>'+orderItem.units+'</strong></p>';
+        html +=     '</div>';
+
+        html +=     '<div class="w-col w-col-2">';
+        html +=      '<p><strong>'+orderItem.ci.detail.substring(0,60)+'</strong></p>';
+        html +=     '</div>';
+
+        html +=     '<div class="w-col w-col-2">';
+        html +=      '<p><strong>'+orderItem.ci.vendor+'</strong></p>';
+        html +=     '</div>';
+
+        html +=     '<div class="w-col w-col-2">';
+        html +=      '<p><strong>'+'$'+numberWithCommas(orderItem.ci.unit_price)+'</strong></p>';
+        html +=     '</div>';
+
+	html +=      '</div>';
+	html +=      '</div>';
+        return html;
+}
+
+function renderListCartItems(items) {
+      var html = "";
+      debugger;
+      for(i = 0; i < items.length; i++) {
+         html = html + renderResultItem(items[i]);
+      }
+      return html;
+}
+
+
+
+// This relies on the clientdata having an standard index number.
+function renderListCart(lc) {
+     var html = "";
+
+     html += '<div class="w-container results-header-container">';
+     html += '     <div>';
+     html += '       <h3>'+lc.name+'</h3>';
+     html += '     </div>';
+     html += '   </div>';
+     html += '     <div>';
+     html += '       <div class="w-row header">';
+     html += '         <div class="w-col w-col-2">';
+     html += '           <h5>Name</h5>';
+     html += '         </div>';
+     html += '         <div class="w-col w-col-2">';
+     html += '           <h5>Description</h5>';
+     html += '         </div>';
+     html += '         <div class="w-col w-col-2">';
+     html += '           <h5>Quantity</h5>';
+     html += '         </div>';
+     html += '         <div class="w-col w-col-2">';
+     html += '           <h5>Details</h5>';
+     html += '         </div>';
+     html += '         <div class="w-col w-col-2">';
+     html += '           <h5>Tags</h5>';
+     html += '         </div>';
+     html += '         <div class="w-col w-col-2">';
+     html += '           <h5>Price</h5>';
+     html += '         </div>';
+     html += '       </div>';
+     html += '     </div>';
+
+     html += renderListCartItems(lc.items);
+
+     html += '<div id="listcart_area'+lc.clientdata+'">\n';
+     html += '</div>\n';
+     html += '     <div>';
+     html += '       <div class="w-row total-price-row">';
+     html += '         <div class="w-col w-col-10 total-price">';
+     html += '           <p><strong>Total Price</strong>';
+     html += '           </p>';
+     html += '         </div>';
+     html += '         <div class="w-col w-col-2">';
+     html += '           <p><strong>$ 27.98</strong>';
+     html += '           </p>';
+     html += '         </div>';
+     html += '       </div>';
+     html += '     </div>';
+     html += '     <div class="w-form">';
+     html += '       <form class="button-submit" name="email-form" data-name="Email Form">';
+     html += '         <input class="w-button form-button" type="submit" value="Send for Approval" data-wait="Sending..." wait="Sending..."></input>';
+     html += '       </form>';
+     html += '       <div class="w-form-done">';
+     html += '         <p>Thank you! Your submission has been received!</p>';
+     html += '       </div>';
+     html += '       <div class="w-form-fail">';
+     html += '         <p>Oops! Something went wrong while submitting the form :(</p>';
+     html += '       </div>';
+     html += '     </div>';
+     return html;
+}
+
+function draw_listcart(lc) {
+   var listcart_area = $("#listcart_area");
+   listcart_area.append(renderListCart(lc));
+}
+
+cartId = qs["id"];
+globalC2 = mock_C2ResearchAPI.get(cartId);
+draw_listcart(globalC2);
+
+
+</script>
