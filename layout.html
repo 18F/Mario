@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- This site was created in Webflow. http://www.webflow.com-->
-<!-- Last Published: Tue Mar 11 2014 17:46:36 GMT+0000 (UTC) -->
+<!-- Last Published: Tue Mar 25 2014 14:15:53 GMT+0000 (UTC) -->
 <html data-wf-site="531e1ac95fe5f2ee6d0000c2">
 <head>
   <meta charset="utf-8">
@@ -9,11 +9,20 @@
   <link rel="stylesheet" type="text/css" href="css/normalize.css">
   <link rel="stylesheet" type="text/css" href="css/webflow.css">
   <link rel="stylesheet" type="text/css" href="css/communicart.webflow.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
   <script>
-    if (/mobile/i.test(navigator.userAgent)) document.documentElement.className += ' w-mobile';
+    WebFont.load({
+      google: {
+        families: ["Roboto Slab:100,300,regular","Actor:regular"]
+      }
+    });
   </script>
+  <script type="text/javascript" src="https://use.typekit.net/fft6oup.js"></script>
+  <script type="text/javascript">
+    try{Typekit.load();}catch(e){}
+  </script>
+  <script type="text/javascript" src="js/modernizr.js"></script>
   <link rel="shortcut icon" type="image/x-icon" href="https://y7v4p6k4.ssl.hwcdn.net/placeholder/favicon.ico">
-  <!--[if lt IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.min.js"></script><![endif]-->
 </head>
 <body>
   <div class="background-container">
@@ -22,8 +31,12 @@
         <div class="w-container">
           <h1>Q1 Supplies for Marketing Team</h1>
           <div class="w-row">
-            <div class="w-col w-col-6 w-clearfix">
-              <h2>Product List</h2>
+            <div class="w-col w-col-6">
+              <div>
+                <div class="summary-block-header">
+                  <h2>Product List</h2>
+                </div>
+              </div>
               <div class="summary-list">
                 <ul>
                   <li class="product-list-item">Bic Pens</li>
@@ -32,11 +45,13 @@
               </div>
             </div>
             <div class="w-col w-col-6">
-              <h2>Cart Summary</h2>
+              <div class="summary-block-header">
+                <h2>Cart Summary</h2>
+              </div>
               <div class="summary-list">
                 <div class="w-row cart-summary-row">
                   <div class="w-col w-col-9">
-                    <p class="summary-link"><a href="http://#">GSA Advantage</a>
+                    <p class="summary-link"><a href="http://#" class="summary-link">GSA Advantage</a>
                     </p>
                   </div>
                   <div class="w-col w-col-3 summary-price-col">
@@ -46,11 +61,11 @@
                 </div>
                 <div class="w-row cart-summary-row last">
                   <div class="w-col w-col-9">
-                    <p class="summary-link"><u><a href="http://#">Staples Advantage</a></u>
+                    <p class="summary-link"><a href="http://#" class="summary-link">Staples Advantage</a>
                     </p>
                   </div>
                   <div class="w-col w-col-3">
-                    <p><strong class="summary-price">$ 23.98</strong>
+                    <p><strong class="summary-price">$ 27.98</strong>
                     </p>
                   </div>
                 </div>
@@ -290,7 +305,7 @@
       </div>
     </div>
   </div>
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
   <script type="text/javascript" src="js/webflow.js"></script>
 </body>
 </html>

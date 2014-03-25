@@ -8,39 +8,50 @@ body {
 h1 {
   margin-top: 20px;
   margin-bottom: 10px;
+  font-family:'Roboto Slab', sans-serif;
   color: #7a7a7a;
   font-size: 38px;
   line-height: 44px;
-  font-weight: 700;
+  font-style: normal;
+  font-weight: 300;
 }
 h2 {
   margin-top: 20px;
-  margin-bottom: 10px;
-  font-size: 32px;
+  margin-bottom: 0px;
+  padding-left: 15px;
+  font-family:'Roboto Slab', sans-serif;
+  color: white;
+  font-size: 18px;
   line-height: 36px;
-  font-weight: 700;
+  font-weight: 300;
 }
 h3 {
   margin-top: 20px;
   margin-bottom: 10px;
+  font-family:'Roboto Slab', sans-serif;
   color: white;
-  font-size: 24px;
+  font-size: 28px;
   line-height: 30px;
-  font-weight: 700;
+  font-style: normal;
+  font-weight: 100;
 }
 h4 {
   margin-top: 10px;
   margin-bottom: 10px;
-  font-size: 18px;
+  font-family:'Roboto Slab', sans-serif;
+  color: #adadad;
+  font-size: 20px;
   line-height: 24px;
-  font-weight: 700;
+  font-weight: 400;
 }
 h5 {
   margin-top: 10px;
   margin-bottom: 10px;
+  font-family: Georgia, serif;
+  color: #e8e8e8;
   font-size: 14px;
   line-height: 20px;
-  font-weight: 700;
+  font-weight: 400;
 }
 h6 {
   margin-top: 10px;
@@ -51,6 +62,9 @@ h6 {
 }
 p {
   margin-bottom: 5px;
+  font-family: Georgia, serif;
+  font-size: 14px;
+  line-height: 18px;
 }
 .button {
   display: inline-block;
@@ -93,8 +107,10 @@ p {
   border-bottom: 5px solid #b87a00;
   border-radius: 5px;
   background-color: #fbaf17;
+  font-family:'Roboto Slab', sans-serif;
   color: black;
-  font-size: 20px;
+  font-size: 18px;
+  font-weight: 400;
 }
 .result-item {
   padding-top: 10px;
@@ -115,6 +131,7 @@ p {
 .result-item-price {
   padding: 15px 10px;
   background-color: #369;
+  font-family: Georgia, serif;
   color: white;
   font-size: 22px;
   font-weight: 400;
@@ -144,23 +161,24 @@ p {
 .summary-link {
   color: #3c62ae;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 400;
 }
 .summary-price {
   padding: 5px 7px;
   background-color: #cadbf1;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Georgia, serif;
   font-size: 18px;
   text-align: left;
 }
 .product-list-item {
   padding-top: 5px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Georgia, serif;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 500;
   list-style-type: decimal;
 }
 .total-price {
+  font-size: 16px;
   text-align: right;
 }
 .total-price-row {
@@ -183,6 +201,12 @@ p {
 }
 .background-container {
   background-color: #2d4c6e;
+  background-image: -webkit-linear-gradient(#2d4c6e, #162a40), -webkit-linear-gradient(black, white);
+  background-image: -o-linear-gradient(#2d4c6e, #162a40), -o-linear-gradient(black, white);
+  background-image: linear-gradient(#2d4c6e, #162a40), linear-gradient(black, white);
+}
+.summary-block-header {
+  background-color: #2774a1;
 }
 @media (max-width: 991px) {
 }
