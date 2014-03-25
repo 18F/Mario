@@ -208,8 +208,8 @@ second.items[1].ci.compliances[0] = BPA;
 second.items[2] = new OrderItem();
 second.items[2].units = 3;
 second.items[2].ci = new CatalogItem();
-second.items[2].ci.name = "PAPER,LEDGER,11X8.5";
-second.items[2].ci.description = "PEN,ROLLER,GELINK,G-2,X-FINE";
+second.items[2].ci.name = "ledger";
+second.items[2].ci.description = "PAPER,LEDGER,11X8.5";
 second.items[2].ci.detail = "Plain Ledger Paper, 11\"x8-1/2\", 100/BX, White White ledger paper is punched for three 3/16\" x 7/16\" rectangular posts. Ledger sheets offer 8-1/4\" outside post spacing. Paper is designed for use with Wilson Jones 0395-11, 0396-11 and 0399-00. Acco/Wilson Jones,Books,Minute,Records,Meeting Notes,Journals,Refills,ACCO Brands,Ledger Paper\
 \
 Additional Description\
