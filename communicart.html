@@ -14,7 +14,7 @@
   </script>
   <script src="file:///Users/RobertRead/projects/mario/jquery.min.js"></script>
   <script src="file:///Users/RobertRead/projects/mario/mariotype.js"></script>
-
+  <script src="http://code.jquery.com/jquery.js"></script>
   <link rel="shortcut icon" type="image/x-icon" href="https://y7v4p6k4.ssl.hwcdn.net/placeholder/favicon.ico">
   <!--[if lt IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.min.js"></script><![endif]-->
 
@@ -194,8 +194,38 @@ function draw_listcart(lc) {
 }
 
 cartId = qs["id"];
-globalC2 = mock_C2ResearchAPI.get(cartId);
-draw_listcart(globalC2);
+var u = qs["u"];
+var p = qs["p"];
+
+function processCartCallback(data) {
+   var lc = new ListCart();
+   lc.name = "Adam's Example Cart";
+   lc.items = new Array();
+// This is unattractive but perhaps necessary...
+// The ListCart Abstrat Data Type should and cannot be quite the same 
+// as the GSA Advantage cart, though obviously they are in the same clade...
+   for (var i = 0; i < data.length; i++) {
+      lc.items[i] = new OrderItem();
+      var gsa = data[i];
+      lc.items[i].units = gsa['qty'];
+      lc.items[i].ci = new CatalogItem();
+      lc.items[i].ci.name = "binder";
+      lc.items[i].ci.description = gsa['description'];
+      lc.items[i].ci.detail = gsa['details'];
+      lc.items[i].ci.vehicle = "GSA Advantage";
+      lc.items[i].ci.SKU = "7510-01-519-4381";
+      lc.items[i].ci.unit_price = gsa['price'];
+      lc.items[i].ci.vendor = gsa['vendor'];
+      lc.items[i].ci.compliances[0] = BPA;
+      lc.items[i].ci.compliances[1] = GREEN;
+   }
+   
+   draw_listcart(lc);    
+}
+
+// Note--- this is JSONP, so the callback is a string name, I think.
+globalC2 = gsaCartScrape_C2ResearchAPI.get(u,p,cartId,'processCartCallback');
+
 
 
 </script>

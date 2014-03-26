@@ -234,3 +234,34 @@ mock_C2ResearchAPI.search = function(query,limit) {
 }
 
 
+// Here I attempt to make an AJAX call to get the cart
+// corresponding to the CartId.  Username and Password must 
+// be provided.
+gsaCartScrape_C2ResearchAPI = new C2ResearchAPI;
+
+var gsa_cart_scrape_url = "http://gsa-advantage-scraper/gsa-adv-cart.py"
+
+gsaCartScrape_C2ResearchAPI.get = function(u,p,id,callback) {
+// Okay, first, we try to make a JSONP hello-world call!
+
+$.ajax({
+    type: 'GET',
+    url: gsa_cart_scrape_url,
+    async: false,
+    jsonpCallback: callback,
+    contentType: "application/json",
+    dataType: 'jsonp',
+    data: {
+       p: p,
+       u: u,
+       cart_id: id,
+    },
+    error: function(e) {
+       alert("e.message = "+e.message);
+       console.log(e.message);
+    }
+  });
+
+
+    return example_carts[id];
+}
