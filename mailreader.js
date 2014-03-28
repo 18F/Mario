@@ -2,6 +2,9 @@ var http = require('http');
 var Imap = require('imap'),
     inspect = require('util').inspect;
 
+var c2render = require('./c2render');
+
+
 // This url must be have p (password), u (url), and cart_id 
 var GSA_SCRAPE_URL = 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py';
 
