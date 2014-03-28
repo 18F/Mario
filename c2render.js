@@ -1,3 +1,4 @@
+mariotype = require('./mariotype');
 
 function numberWithCommas(x) {
     var parts = x.toString().split(".");
@@ -51,7 +52,7 @@ function renderListCartItems(items) {
 
 
 // This relies on the clientdata having an standard index number.
-function renderListCart(lc) {
+exports.renderListCart = function renderListCart(lc) {
      var html = "";
 
      html += '<div class="w-container results-header-container">';
@@ -112,23 +113,19 @@ function renderListCart(lc) {
      return html;
 }
 
-function draw_listcart(lc) {
-   var listcart_area = $("#listcart_area");
-   listcart_area.append(renderListCart(lc));
-}
 
-function processCartCallback(data) {
-   var lc = new ListCart();
+exports.generateCart = function generateCart(data) {
+   var lc = new mariotype.ListCart();
    lc.name = "Adam's Example Cart";
    lc.items = new Array();
 // This is unattractive but perhaps necessary...
 // The ListCart Abstrat Data Type should and cannot be quite the same 
 // as the GSA Advantage cart, though obviously they are in the same clade...
    for (var i = 0; i < data.length; i++) {
-      lc.items[i] = new OrderItem();
+      lc.items[i] = new mariotype.OrderItem();
       var gsa = data[i];
       lc.items[i].units = gsa['qty'];
-      lc.items[i].ci = new CatalogItem();
+      lc.items[i].ci = new mariotype.CatalogItem();
       lc.items[i].ci.name = "binder";
       lc.items[i].ci.description = gsa['description'];
       lc.items[i].ci.detail = gsa['details'];
@@ -136,9 +133,9 @@ function processCartCallback(data) {
       lc.items[i].ci.SKU = "7510-01-519-4381";
       lc.items[i].ci.unit_price = gsa['price'];
       lc.items[i].ci.vendor = gsa['vendor'];
-      lc.items[i].ci.compliances[0] = BPA;
-      lc.items[i].ci.compliances[1] = GREEN;
+      lc.items[i].ci.compliances[0] = mariotype.BPA;
+      lc.items[i].ci.compliances[1] = mariotype.GREEN;
    }
-   
-   draw_listcart(lc);    
+   return lc;
+
 }

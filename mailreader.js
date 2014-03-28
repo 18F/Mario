@@ -4,6 +4,50 @@ var Imap = require('imap'),
 
 var c2render = require('./c2render');
 
+// mail sending stuff copied from mailsender.js...
+fs = require('fs');
+var http = require('http');
+var nodemailer = require("nodemailer");
+
+var dynoCartSender;    // This is a quick and dirty way to keep the user
+
+function instantiateGmailTransport(username, password) {
+    dynoCartSender = username;
+    return nodemailer.createTransport("SMTP",{
+        service: "Gmail",
+        auth: {
+            user: username,
+            pass: password
+        }
+    });
+}
+
+var dynoCartXport = instantiateGmailTransport(
+    'communicart.sender@gmail.com',
+    process.env.COMMUNICART_DOT_SENDER
+    );
+
+function sendFrDynoCart(from, recipients, subject, message) {
+    var fromString = from + ' <' + dynoCartSender +'>';
+    console.log('from is "' + fromString + '"');
+    dynoCartXport.sendMail(
+        {
+        from: fromString,
+        to: recipients,
+        subject: subject,
+        text: "you need an html capable email client",
+        html: message
+        },
+        function(error, response){
+            if (error) {
+                console.log(error);
+            } else {
+                console.log("Message sent(from " + from + "): " +
+                        response.message);
+            }
+        });
+}
+
 
 // This url must be have p (password), u (url), and cart_id 
 var GSA_SCRAPE_URL = 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py';
@@ -53,6 +97,7 @@ function parseCartIdFromGSAAdvantage(str) {
     return null;
 }
 
+
 imap.once('ready', function() {
 
     openInbox(function(err, box) {
@@ -101,7 +146,13 @@ imap.once('ready', function() {
 
 				//the whole response has been recieved, so we just print it out here
 				response.on('end', function () {
-				    console.log('XXXX' + str);
+				    var data = eval(str);
+				    var rendered_html = c2render.renderListCart(c2render.generateCart(data));
+				    console.log('XXXX' + rendered_html);
+				    var subject = "please approve Cart Number: "+cartId;
+				    var from = GSA_USERNAME;
+				    var recipients = "robert.read@gsa.gov";
+				    sendFrDynoCart(from, recipients, subject, rendered_html)
 				});
 			    };
 

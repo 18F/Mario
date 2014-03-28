@@ -80,6 +80,15 @@ cartId = qs["id"];
 var u = qs["u"];
 var p = qs["p"];
 
+function draw_listcart(lc) {
+   var listcart_area = $("#listcart_area");
+   listcart_area.append(renderListCart(lc));
+}
+
+
+function processCartCallback(data) {
+   draw_listcart(exports.generateCart(data));    
+}
 
 // Note--- this is JSONP, so the callback is a string name, I think.
 globalC2 = gsaCartScrape_C2ResearchAPI.get(u,p,cartId,'processCartCallback');
