@@ -8,15 +8,15 @@ function numberWithCommas(x) {
 
 function renderResultItem(orderItem) {
 	var html = "";
-        html +=   ' <div class="w-container results-list">';
+        html +=   ' <div  class="w-container results-list">';
 
 	html +=      ' <div class="w-row result-item">';
 
-        html +=     '<div class="w-col w-col-2">';
+        html +=     '<div style=" {  position: relative;  float: left;  width: 100%;  min-height: 1px;  padding-left: 10px;  padding-right: 10px;}" class="w-col w-col-2">';
         html +=      '<p><strong>'+orderItem.ci.name+'</strong></p>';
         html +=     '</div>';
 
-        html +=     '<div class="w-col w-col-2">';
+        html +=     '<div style=" {  position: relative;  float: left;  width: 100%;  min-height: 1px;  padding-left: 10px;  padding-right: 10px;}" class="w-col w-col-2">';
         html +=      '<p><strong>'+orderItem.ci.description.substring(0,60)+'</strong></p>';
         html +=     '</div>';
 
@@ -50,10 +50,23 @@ function renderListCartItems(items) {
 }
 
 
+function read_css(path) {
+    fs = require('fs');
+    var file = fs.readFileSync(path, "utf8");
+    var html = "";
+    html += '<style type="text/css">';
+    html += file;
+    html += '</style>';
+    return html;
+}
+
 
 // This relies on the clientdata having an standard index number.
 exports.renderListCart = function renderListCart(lc) {
      var html = "";
+//     html += read_css("./css/communicart.webflow.css");
+//     html += read_css("./css/normalize.css");
+//     html += read_css("./css/webflow.css");
 
      html += '<div class="w-container results-header-container">';
      html += '     <div>';

@@ -67,13 +67,13 @@ if (!String.format) {
 }
 
 
-var password18f = process.env.WEARE18F;
+// var password18f = process.env.WEARE18F;
 var GSA_PASSWORD = process.env.GSA_PASSWORD;
 var GSA_USERNAME = process.env.GSA_USERNAME;
 
 var imap = new Imap({
-  user: 'weare18f@gmail.com',
-  password: password18f,
+  user: 'communicart.sender@gmail.com',
+  password: process.env.COMMUNICART_DOT_SENDER,
   host: 'imap.gmail.com',
   port: 993,
   tls: true
@@ -90,6 +90,20 @@ function parseCartIdFromGSAAdvantage(str) {
     var arrayLength = myArray.length;
     for (var i = 0; i < arrayLength; i++) {
         console.log("number "+myArray[i]);
+    }
+	var cartNumber = myArray[1];
+	return cartNumber;
+    }
+    return null;
+}
+
+function parseAtnFromGSAAdvantage(str) {
+    var reg = /\[Atn: (\S+@\S+\.\S+)\]/gm;
+    var myArray = reg.exec(str);
+    if (myArray) {
+    var arrayLength = myArray.length;
+    for (var i = 0; i < arrayLength; i++) {
+        console.log("address "+myArray[i]);
     }
 	var cartNumber = myArray[1];
 	return cartNumber;
@@ -129,7 +143,9 @@ imap.once('ready', function() {
 		    stream.on('end', function() {
 			console.log('there will be no more data.');
 			var cartId = parseCartIdFromGSAAdvantage(buffer);
-			if (cartId) {
+			var recipientEmail = parseAtnFromGSAAdvantage(buffer);
+      		        console.log('XXXX:' + recipientEmail);
+			if (cartId && recipientEmail) {
 			    var options = {
 				host: 'gsa-advantage-scraper',
 				path: String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
@@ -148,11 +164,9 @@ imap.once('ready', function() {
 				response.on('end', function () {
 				    var data = eval(str);
 				    var rendered_html = c2render.renderListCart(c2render.generateCart(data));
-				    console.log('XXXX' + rendered_html);
 				    var subject = "please approve Cart Number: "+cartId;
 				    var from = GSA_USERNAME;
-				    var recipients = "robert.read@gsa.gov";
-				    sendFrDynoCart(from, recipients, subject, rendered_html)
+				    sendFrDynoCart(from, recipientEmail, subject, rendered_html)
 				});
 			    };
 
