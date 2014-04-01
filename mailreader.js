@@ -1,3 +1,6 @@
+// In the morning, parse an actual "APPROVE" or "DISAPPROVE" message
+// and do something about parsing comments.
+
 var http = require('http');
 var Imap = require('imap'),
 inspect = require('util').inspect;
@@ -137,6 +140,17 @@ function parseDate(str) {
     var reg = /Date: (.*)/gm;
     return parseCompleteEmail(str,reg);
 }
+
+function parseAPPROVE(str) {
+    console.log("Total Mail: "+str);
+    var reg = /^(APPROVE)$/gm;
+    return parseCompleteEmail(str,reg);
+}
+
+function parseDISAPPROVE(str) {
+    var reg = /^(DISAPPROVE)$/gm;
+    return parseCompleteEmail(str,reg);
+}
 	    
 function consolePrint(analysis) {
     console.log("analysis.category "+analysis.category);
@@ -145,6 +159,8 @@ function consolePrint(analysis) {
     console.log("analysis.fromAddress "+analysis.fromAddress);
     console.log("analysis.gsaUsername "+analysis.gsaUsername);
     console.log("analysis.date "+analysis.date);
+    console.log("analysis.approve "+analysis.approve);
+    console.log("analysis.disapprove "+analysis.disapprove);
 }
 function analyze_category(str) {
     var analysis = new EmailAnalysis();
@@ -166,6 +182,8 @@ function analyze_category(str) {
 	    analysis.fromAddress = parseFromEmail(str);
 	    analysis.gsaUsername = parseGsaUsername(str);
 	    analysis.date = parseDate(str);
+	    analysis.approve = parseAPPROVE(str);
+	    analysis.disapprove = parseDISAPPROVE(str);
 	    consolePrint(analysis);
 	    return analysis;
 	}
@@ -198,12 +216,35 @@ function processInitiation(analysis) {
 		var data = eval(str);
 		var rendered_html = c2render.renderListCart(c2render.generateCart(data));
 		var subject = "please approve Cart Number: "+cartId;
+		rendered_html = "<p></p><p>------------------</p><p>Please reply with the word 'APPROVE' or 'DISAPPROVE' begining a line with nothing else on that line.</p>" + rendered_html;
 		var from = GSA_USERNAME;
 		sendFrDynoCart(DYNO_CART_SENDER,from, recipientEmail, subject, rendered_html)
 	    });
 	};
 	http.request(options, callback).end();
     };
+}
+
+function processApprovalReply(analysis) {
+    // Now we must treat this as a reply...
+    // But in fact I have no endpoint to sent this to.
+    // Therefore as a stopgap I will send an "approval received" 
+    // email to the originator...if I can determine it!
+    // To simulate this, I have created a 
+    var subject = "Approved for Cart Number: "+analysis.cartNumber;
+    var approvalMessage = (analysis.approve && !analysis.disapprove) ? "{1} approved" : "{1} disapproved";
+    var approvalInstruction = (analysis.approve && !analysis.disapprove) ? "<p>Please purchase that cart with all deliberate speed.</p>" : "<p>You may wish to contact the approver for more explanation.</p>";
+    var emailBody = String.format('At time {0}, approver '+approvalMessage+' Cart Number {2}.  {3}',
+				  analysis.date,
+				  analysis.fromAddress,
+				  analysis.cartNumber,
+				  approvalInstruction);
+
+    sendFrDynoCart(DYNO_CART_SENDER,analysis.fromAddress,
+		   simulatedMapOfUserNameToEmail[analysis.gsaUsername],
+		   subject,
+		   emailBody			    
+		  );
 }
 
 imap.once('ready', function() {
@@ -217,44 +258,28 @@ imap.once('ready', function() {
 		console.log('Message #%d', seqno);
 		var prefix = '(#' + seqno + ') ';
 		msg.on('body', function(stream, info) {
-
 		    var buffer = '', count = 0;
-		    
 		    stream.on('data', function(chunk) {
 			buffer += chunk.toString('utf8');
-		    })
+		    });
 
 		    stream.on('end', function() {
-			console.log('there will be no more data.');
 			// We must categorize the email, the most basic 
 			// categorization being a two:
 			// *) An initiation email send from GSA Advantage.
 			// *) A reply.
-//			console.log('Total Email:'+buffer);
 			var analysis = analyze_category(buffer);
 			if (!analysis) {
 			    console.log('Cannot categorize, doing nothing!');
 			} else if (analysis.category == "initiation") {
 			    processInitiation(analysis);
 			} else if (analysis.category == "approvalreply") {
-			    // Now we must treat this as a reply...
-			    // But in fact I have no endpoint to sent this to.
-			    // Therefore as a stopgap I will send an "approval received" 
-			    // email to the originator...if I can determine it!
-			    // To simulate this, I have created a 
-			    var subject = "Approved for Cart Number: "+analysis.cartNumber;
-                            var emailBody = String.format('At time {0}, approver {1} approved Car Number {2}.  So please fulfill the order with all deliberate speed.',
-							  analysis.date,
-							  analysis.fromAddress,
-							  analysis.cartNumber);
-
-			    sendFrDynoCart(DYNO_CART_SENDER,analysis.fromAddress,
-					   simulatedMapOfUserNameToEmail[analysis.gsaUsername],
-					   subject,
-					   emailBody			    
-					  );
-			};
+			    processApprovalReply(analysis);
+			} else {
+			    console.log('Unimplemented Category:'+analysis.category);
+  			};
 		    });
+
 		    msg.once('attributes', function(attrs) {
 			console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
 		    });
