@@ -31,6 +31,9 @@ var dynoCartXport = instantiateGmailTransport(
 function sendFrDynoCart(dynoCartSender,from, recipients, subject, message) {
     var fromString = from + ' <' + dynoCartSender +'>';
     console.log('from is "' + fromString + '"');
+    console.log('recipient is "' + recipients + '"');
+    console.log('subject is "' + subject + '"');
+    console.log('___________');
     dynoCartXport.sendMail(
         {
             from: fromString,
@@ -40,8 +43,9 @@ function sendFrDynoCart(dynoCartSender,from, recipients, subject, message) {
             html: message
         },
         function(error, response){
+            console.log("MAIL RESULT =========");
             if (error) {
-                console.log(error);
+                console.log("Mail Error:"+error);
             } else {
                 console.log("Message sent(from " + from + "): " +
                             response.message);
@@ -136,6 +140,7 @@ function parseDate(str) {
 	    
 function consolePrint(analysis) {
     console.log("analysis.category "+analysis.category);
+    console.log("analysis.attention "+analysis.attention);
     console.log("analysis.cartNumber "+analysis.cartNumber);
     console.log("analysis.fromAddress "+analysis.fromAddress);
     console.log("analysis.gsaUsername "+analysis.gsaUsername);
@@ -168,6 +173,38 @@ function analyze_category(str) {
     return null;
 }
 
+function processInitiation(analysis) {
+    var recipientEmail = analysis.attention;
+    var cartId = analysis.cartNumber;
+    console.log('XXXX:' + recipientEmail);
+    console.log('YYY:' + cartId);
+    if (cartId && recipientEmail) {
+	var options = {
+	    host: 'gsa-advantage-scraper',
+	    path: String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
+				encodeURIComponent(GSA_PASSWORD),encodeURIComponent(GSA_USERNAME),cartId)
+	};
+
+	callback = function(response) {
+	    var str = '';
+
+	    //another chunk of data has been recieved, so append it to `str`
+	    response.on('data', function (chunk) {
+		str += chunk;
+	    });
+
+	    //the whole response has been recieved, so we just print it out here
+	    response.on('end', function () {
+		var data = eval(str);
+		var rendered_html = c2render.renderListCart(c2render.generateCart(data));
+		var subject = "please approve Cart Number: "+cartId;
+		var from = GSA_USERNAME;
+		sendFrDynoCart(DYNO_CART_SENDER,from, recipientEmail, subject, rendered_html)
+	    });
+	};
+	http.request(options, callback).end();
+    };
+}
 
 imap.once('ready', function() {
 
@@ -193,40 +230,12 @@ imap.once('ready', function() {
 			// categorization being a two:
 			// *) An initiation email send from GSA Advantage.
 			// *) A reply.
-			console.log('Total Email:'+buffer);
+//			console.log('Total Email:'+buffer);
 			var analysis = analyze_category(buffer);
 			if (!analysis) {
 			    console.log('Cannot categorize, doing nothing!');
 			} else if (analysis.category == "initiation") {
-			    var cartId = this.cartNumber;
-			    var recipientEmail = this.attention;
-      		            console.log('XXXX:' + recipientEmail);
-			    if (cartId && recipientEmail) {
-				var options = {
-				    host: 'gsa-advantage-scraper',
-				    path: String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
-							encodeURIComponent(GSA_PASSWORD),encodeURIComponent(GSA_USERNAME),cartId)
-				};
-
-				callback = function(response) {
-				    var str = '';
-
-				    //another chunk of data has been recieved, so append it to `str`
-				    response.on('data', function (chunk) {
-					str += chunk;
-				    });
-
-				    //the whole response has been recieved, so we just print it out here
-				    response.on('end', function () {
-					var data = eval(str);
-					var rendered_html = c2render.renderListCart(c2render.generateCart(data));
-					var subject = "please approve Cart Number: "+cartId;
-					var from = GSA_USERNAME;
-					sendFrDynoCart(DYNO_CART_SENDER,from, recipientEmail, subject, rendered_html)
-				    });
-				};
-				http.request(options, callback).end();
-                            };
+			    processInitiation(analysis);
 			} else if (analysis.category == "approvalreply") {
 			    // Now we must treat this as a reply...
 			    // But in fact I have no endpoint to sent this to.
