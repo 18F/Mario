@@ -86,7 +86,7 @@ var imap = new Imap({
 });
 
 function openInbox(cb) {
-    imap.openBox('INBOX', true, cb);
+    imap.openBox('INBOX', false, cb);
 }
 
 // Currently these are operating on the COMPLETE 
@@ -231,9 +231,12 @@ function processApprovalReply(analysis) {
     // Therefore as a stopgap I will send an "approval received" 
     // email to the originator...if I can determine it!
     // To simulate this, I have created a 
-    var subject = "Approved for Cart Number: "+analysis.cartNumber;
-    var approvalMessage = (analysis.approve && !analysis.disapprove) ? "{1} approved" : "{1} disapproved";
-    var approvalInstruction = (analysis.approve && !analysis.disapprove) ? "<p>Please purchase that cart with all deliberate speed.</p>" : "<p>You may wish to contact the approver for more explanation.</p>";
+    var approved = (analysis.approve && !analysis.disapprove);
+    var subject = (approved ? "Approved" : "Disapproved") + " for Cart Number: "+analysis.cartNumber;
+
+    var approvalMessage = approved ? "{1} approved" : "{1} disapproved";
+    var approvalInstruction = approved ? "<p>Please purchase that cart with all deliberate speed.</p>" : "<p>You may wish to contact the approver for more explanation.</p>";
+
     var emailBody = String.format('At time {0}, approver '+approvalMessage+' Cart Number {2}.  {3}',
 				  analysis.date,
 				  analysis.fromAddress,
@@ -253,7 +256,7 @@ imap.once('ready', function() {
 	if (err) throw err;
 	imap.search([ 'UNSEEN', ['SINCE', 'May 20, 2010'] ], function(err, results) {
 	    if (err) throw err;
-	    var f = imap.fetch(results, { bodies: '' });
+	    var f = imap.fetch(results, { bodies: '', markSeen: true });
 	    f.on('message', function(msg, seqno) {
 		console.log('Message #%d', seqno);
 		var prefix = '(#' + seqno + ') ';
