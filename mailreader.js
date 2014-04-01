@@ -10,10 +10,12 @@ var c2render = require('./c2render');
 fs = require('fs');
 var http = require('http');
 var nodemailer = require("nodemailer");
+var configs = require('./configs');
 
 var simulatedMapOfUserNameToEmail = { "ROBERTLREAD" : "read.robert@gmail.com" };
 
-var DYNO_CART_SENDER = 'communicart.sender@gmail.com';   
+var DYNO_CART_SENDER = configs().DYNO_CART_SENDER;
+var SENDER_CREDENTIALS = configs().SENDER_CREDENTIALS;
 
 function instantiateGmailTransport(username, password) {
     return nodemailer.createTransport("SMTP",{
@@ -27,7 +29,7 @@ function instantiateGmailTransport(username, password) {
 
 var dynoCartXport = instantiateGmailTransport(
     DYNO_CART_SENDER,
-    process.env.COMMUNICART_DOT_SENDER
+    SENDER_CREDENTIALS
 );
 
 function sendFrDynoCart(dynoCartSender,from, recipients, subject, message) {
@@ -57,7 +59,8 @@ function sendFrDynoCart(dynoCartSender,from, recipients, subject, message) {
 
 
 // This url must be have p (password), u (url), and cart_id 
-var GSA_SCRAPE_URL = 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py';
+// var GSA_SCRAPE_URL = 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py';
+var GSA_SCRAPE_URL = configs().GSA_SCRAPE_URL;
 
 
 // taken from StackOverflow: http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format
@@ -73,12 +76,9 @@ if (!String.format) {
     };
 }
 
-var GSA_PASSWORD = process.env.GSA_PASSWORD;
-var GSA_USERNAME = process.env.GSA_USERNAME;
-
 var imap = new Imap({
-    user: 'communicart.sender@gmail.com',
-    password: process.env.COMMUNICART_DOT_SENDER,
+    user: DYNO_CART_SENDER,
+    password: SENDER_CREDENTIALS,
     host: 'imap.gmail.com',
     port: 993,
     tls: true
@@ -107,12 +107,7 @@ EmailAnalysis.prototype = new EmailAnalysis;
 function parseCompleteEmail(str,reg) {
     var myArray = reg.exec(str);
     if (myArray) {
-	//	var arrayLength = myArray.length;
-	//	for (var i = 0; i < arrayLength; i++) {
-	//            console.log("number "+myArray[i]);
-	//	}
-	var result = myArray[1];
-	return result;
+	return myArray[1];
     }
     return null;
 }
@@ -238,7 +233,7 @@ function processInitiation(analysis) {
 	var options = {
 	    url: 'http://'+'gsa-advantage-scraper'+
 		String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
-			      encodeURIComponent(GSA_PASSWORD),encodeURIComponent(GSA_USERNAME),analysis.cartNumber)
+			      encodeURIComponent(configs().GSA_PASSWORD),encodeURIComponent(configs().GSA_USERNAME),analysis.cartNumber)
 	};
 
 	function callback(error, response, body) {
