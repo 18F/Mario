@@ -1,5 +1,6 @@
 // Now need to add the 
 var http = require('http');
+var request = require('request');
 var Imap = require('imap'),
 inspect = require('util').inspect;
 
@@ -208,25 +209,26 @@ function analyze_category(str) {
     return null;
 }
 
-function executeInitiationMailDelivery(analysis) {
+function executeInitiationMailDelivery(path,analysis) {
     var options = {
-        host: 'gsa-advantage-scraper',
-        path: String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
-	encodeURIComponent(GSA_PASSWORD),encodeURIComponent(GSA_USERNAME),analysis.cartNumber)
+	host: 'localhost',
+	port: '3000',
+	method: 'POST',
+	json: analysis,
+	path: String.format(path)
     };
-    callback = function(response) {
-	    var str = '';
 
-	    //another chunk of data has been recieved, so append it to `str`
-	    response.on('data', function (chunk) {
-		str += chunk;
-	    });
-
-	    //the whole response has been recieved, so we just print it out here
-	    response.on('end', function () {
-		});
-	};
-
+// Really we don't have anything to do, though 
+// I suppose in a perfect world we wouldn't mark 
+// the email as seen until this succeeds..
+    function callback(error, response, body) {
+	if (!error && response.statusCode == 200) {
+	    var info = JSON.parse(body);
+	    console.log(body);
+	    console.log(info);
+	}
+    }
+    request(options, callback);
 }
 
 function processInitiation(analysis) {
@@ -234,8 +236,36 @@ function processInitiation(analysis) {
     if (analysis.cartNumber && recipientEmail) {
 	console.log("inside process Initiation");
 	var options = {
-	    host: 'gsa-advantage-scraper',
-	    path: String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
+	    url: 'http://'+'gsa-advantage-scraper'+
+		String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
+			      encodeURIComponent(GSA_PASSWORD),encodeURIComponent(GSA_USERNAME),analysis.cartNumber)
+	};
+
+	function callback(error, response, body) {
+	    if (!error && response.statusCode == 200) {
+		var info = JSON.parse(body);
+		console.log(body);
+		console.log(info);
+
+		var data = eval(info);
+		analysis.cart = data;
+
+		executeInitiationMailDelivery('/path',analysis);
+		consolePrint(analysis);
+		console.log(JSON.stringify(analysis,null,4));
+	    }
+	}
+	request(options, callback);
+    }
+}
+/*
+function processInitiationOld(analysis) {
+    var recipientEmail = analysis.attention;
+    if (analysis.cartNumber && recipientEmail) {
+	console.log("inside process Initiation");
+	var options = {
+            host: 'gsa-advantage-scraper',
+            path: String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
 				encodeURIComponent(GSA_PASSWORD),encodeURIComponent(GSA_USERNAME),analysis.cartNumber)
 	};
 
@@ -255,6 +285,8 @@ function processInitiation(analysis) {
 		executeInitiationMailDelivery(analysis);
 		consolePrint(analysis);
 		console.log(JSON.stringify(analysis,null,4));
+
+// Eventually, this should all go away...
 		var rendered_html = c2render.renderListCart(c2render.generateCart(data));
 		var subject = "please approve Cart Number: "+analysis.cartNumber;
 		rendered_html = "<p>Here is the comment sent to you:</p><p>BEGIN COMMENT</p><p>"+analysis.initiationComment+"</p><p>END COMMENT</p>" + rendered_html;
@@ -266,8 +298,10 @@ function processInitiation(analysis) {
 	http.request(options, callback).end();
     };
 }
+*/
 
 function processApprovalReply(analysis) {
+/*
     // Now we must treat this as a reply...
     // But in fact I have no endpoint to sent this to.
     // Therefore as a stopgap I will send an "approval received" 
@@ -290,6 +324,8 @@ function processApprovalReply(analysis) {
 		   subject,
 		   emailBody			    
 		  );
+*/
+    executeInitiationMailDelivery('/notification',analysis);
 }
 
 imap.once('ready', function() {

@@ -17,6 +17,7 @@ This is currently a node project.  You should install the following packages:
 
 npm install nodemailer
 npm install imap
+npm install request
 
 Possibly others.
 
