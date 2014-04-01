@@ -12,7 +12,7 @@ var http = require('http');
 var nodemailer = require("nodemailer");
 var configs = require('./configs');
 
-var simulatedMapOfUserNameToEmail = { "ROBERTLREAD" : "read.robert@gmail.com" };
+var simulatedMapOfUserNameToEmail = configs().SIM_MAP_USER_EMAIL;
 
 var DYNO_CART_SENDER = configs().DYNO_CART_SENDER;
 var SENDER_CREDENTIALS = configs().SENDER_CREDENTIALS;
@@ -34,10 +34,13 @@ var dynoCartXport = instantiateGmailTransport(
 
 function sendFrDynoCart(dynoCartSender,from, recipients, subject, message) {
     var fromString = from + ' <' + dynoCartSender +'>';
-    console.log('from is "' + fromString + '"');
-    console.log('recipient is "' + recipients + '"');
-    console.log('subject is "' + subject + '"');
-    console.log('___________');
+    if (configs().MODE == "debug") {
+	console.log('from is "' + fromString + '"');
+	console.log('recipient is "' + recipients + '"');
+	console.log('subject is "' + subject + '"');
+	console.log('___________');
+    }
+
     dynoCartXport.sendMail(
         {
             from: fromString,
@@ -56,12 +59,6 @@ function sendFrDynoCart(dynoCartSender,from, recipients, subject, message) {
             }
         });
 }
-
-
-// This url must be have p (password), u (url), and cart_id 
-// var GSA_SCRAPE_URL = 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py';
-var GSA_SCRAPE_URL = configs().GSA_SCRAPE_URL;
-
 
 // taken from StackOverflow: http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format
 if (!String.format) {
@@ -138,7 +135,9 @@ function parseDate(str) {
 }
 
 function parseAPPROVE(str) {
-    console.log("Total Mail: "+str);
+    if (configs().MODE == "debug") {
+	console.log("Total Mail: "+str);
+    }
     var reg = /^(APPROVE)$/gm;
     return parseCompleteEmail(str,reg);
 }
@@ -176,14 +175,13 @@ function analyze_category(str) {
     var reg = /Subject: GSA Advantage! cart # (\d+)/gm;
     var initiationCartNumber = parseCompleteEmail(str,reg);
     if (initiationCartNumber) {
-	console.log("Total initiation email = "+str);
+	if (configs().MODE == "debug") {
+	    console.log("Total initiation email = "+str);
+	}
 	analysis.category = "initiation";
 	analysis.cartNumber = initiationCartNumber;
-	var atn = parseAtnFromGSAAdvantage(str);
-	analysis.attention = atn;
-	var comment = parseInitiationComment(str);
-	console.log("comment = "+comment);
-	analysis.initiationComment = comment;
+	analysis.attention = parseAtnFromGSAAdvantage(str);
+	analysis.initiationComment = parseInitiationComment(str);
 	consolePrint(analysis);
 	return analysis;
     } else {
@@ -231,16 +229,16 @@ function processInitiation(analysis) {
     if (analysis.cartNumber && recipientEmail) {
 	console.log("inside process Initiation");
 	var options = {
-	    url: 'http://'+'gsa-advantage-scraper'+
-		String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
+	    url: configs().GSA_SCRAPE_URL + 
+		String.format('?p={0}&u={1}&cart_id={2}',
 			      encodeURIComponent(configs().GSA_PASSWORD),encodeURIComponent(configs().GSA_USERNAME),analysis.cartNumber)
 	};
 
 	function callback(error, response, body) {
 	    if (!error && response.statusCode == 200) {
 		var info = JSON.parse(body);
-		console.log(body);
-		console.log(info);
+//		console.log(body);
+//		console.log(info);
 
 		var data = eval(info);
 		analysis.cart = data;
