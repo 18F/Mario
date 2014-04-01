@@ -86,7 +86,7 @@ var imap = new Imap({
 function openInbox(cb) {
 // But "true" here if you want to leave the emails you are reading in place...
 // probably this should be a command-line argument for debugging purposes.
-    imap.openBox('INBOX', false, cb);
+    imap.openBox('INBOX', true, cb);
 }
 
 // Currently these are operating on the COMPLETE 
@@ -161,6 +161,9 @@ function parseInitiationComment(str) {
     return parseCompleteEmail(str,reg);
 }
 
+function consolePrintJSON(analysis) {
+
+}
 function consolePrint(analysis) {
     console.log("analysis.category "+analysis.category);
     console.log("analysis.attention "+analysis.attention);
@@ -170,6 +173,7 @@ function consolePrint(analysis) {
     console.log("analysis.date "+analysis.date);
     console.log("analysis.approve "+analysis.approve);
     console.log("analysis.disapprove "+analysis.disapprove);
+    console.log("analysis.cart "+analysis.cart);
 }
 function analyze_category(str) {
     var analysis = new EmailAnalysis();
@@ -204,15 +208,35 @@ function analyze_category(str) {
     return null;
 }
 
+function executeInitiationMailDelivery(analysis) {
+    var options = {
+        host: 'gsa-advantage-scraper',
+        path: String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
+	encodeURIComponent(GSA_PASSWORD),encodeURIComponent(GSA_USERNAME),analysis.cartNumber)
+    };
+    callback = function(response) {
+	    var str = '';
+
+	    //another chunk of data has been recieved, so append it to `str`
+	    response.on('data', function (chunk) {
+		str += chunk;
+	    });
+
+	    //the whole response has been recieved, so we just print it out here
+	    response.on('end', function () {
+		});
+	};
+
+}
+
 function processInitiation(analysis) {
     var recipientEmail = analysis.attention;
-    var cartId = analysis.cartNumber;
-    if (cartId && recipientEmail) {
+    if (analysis.cartNumber && recipientEmail) {
 	console.log("inside process Initiation");
 	var options = {
 	    host: 'gsa-advantage-scraper',
 	    path: String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
-				encodeURIComponent(GSA_PASSWORD),encodeURIComponent(GSA_USERNAME),cartId)
+				encodeURIComponent(GSA_PASSWORD),encodeURIComponent(GSA_USERNAME),analysis.cartNumber)
 	};
 
 	callback = function(response) {
@@ -226,8 +250,13 @@ function processInitiation(analysis) {
 	    //the whole response has been recieved, so we just print it out here
 	    response.on('end', function () {
 		var data = eval(str);
+		analysis.cart = data;
+
+		executeInitiationMailDelivery(analysis);
+		consolePrint(analysis);
+		console.log(JSON.stringify(analysis,null,4));
 		var rendered_html = c2render.renderListCart(c2render.generateCart(data));
-		var subject = "please approve Cart Number: "+cartId;
+		var subject = "please approve Cart Number: "+analysis.cartNumber;
 		rendered_html = "<p>Here is the comment sent to you:</p><p>BEGIN COMMENT</p><p>"+analysis.initiationComment+"</p><p>END COMMENT</p>" + rendered_html;
 		rendered_html = "<p></p><p>------------------</p><p>Please reply with the word 'APPROVE' or 'DISAPPROVE' begining a line with nothing else on that line.</p>" + rendered_html;
 		var from = GSA_USERNAME;
