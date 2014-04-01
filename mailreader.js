@@ -11,10 +11,9 @@ var nodemailer = require("nodemailer");
 
 var simulatedMapOfUserNameToEmail = { "ROBERTLREAD" : "read.robert@gmail.com" };
 
-var dynoCartSender;    // This is a quick and dirty way to keep the user
+var DYNO_CART_SENDER = 'communicart.sender@gmail.com';   
 
 function instantiateGmailTransport(username, password) {
-    dynoCartSender = username;
     return nodemailer.createTransport("SMTP",{
         service: "Gmail",
         auth: {
@@ -25,11 +24,11 @@ function instantiateGmailTransport(username, password) {
 }
 
 var dynoCartXport = instantiateGmailTransport(
-    'communicart.sender@gmail.com',
+    DYNO_CART_SENDER,
     process.env.COMMUNICART_DOT_SENDER
 );
 
-function sendFrDynoCart(from, recipients, subject, message) {
+function sendFrDynoCart(dynoCartSender,from, recipients, subject, message) {
     var fromString = from + ' <' + dynoCartSender +'>';
     console.log('from is "' + fromString + '"');
     dynoCartXport.sendMail(
@@ -68,8 +67,6 @@ if (!String.format) {
     };
 }
 
-
-// var password18f = process.env.WEARE18F;
 var GSA_PASSWORD = process.env.GSA_PASSWORD;
 var GSA_USERNAME = process.env.GSA_USERNAME;
 
@@ -147,29 +144,19 @@ function consolePrint(analysis) {
 function analyze_category(str) {
     var analysis = new EmailAnalysis();
     var reg = /Subject: GSA Advantage! cart # (\d+)/gm;
-    var myArray = reg.exec(str);
-    if (myArray) {
-	var arrayLength = myArray.length;
-	for (var i = 0; i < arrayLength; i++) {
-//            console.log("address "+myArray[i]);
-	}
-	var cartNumber = myArray[1];
-	analysis.cartNumber = cartNumber;
+    var initiationCartNumber = parseCompleteEmail(str,reg);
+    if (initiationCartNumber) {
 	analysis.category = "initiation";
+	analysis.cartNumber = initiationCartNumber;
 	var atn = parseAtnFromGSAAdvantage(str);
 	analysis.attention = atn;
 	consolePrint(analysis);
 	return analysis;
     } else {
 	var reg = /Re: please approve Cart Number: (\d+)/gm;
-	var myArray = reg.exec(str);
-	if (myArray) {
-	    var arrayLength = myArray.length;
-	    for (var i = 0; i < arrayLength; i++) {
-//		console.log("Replied Cart Number: "+myArray[i]);
-	    }
-	    var cartNumber = myArray[1];
-	    analysis.cartNumber = cartNumber;
+	var approvalCartNumber = parseCompleteEmail(str,reg);
+	if (approvalCartNumber) {
+	    analysis.cartNumber = approvalCartNumber;
 	    analysis.category = "approvalreply";	    
 	    analysis.fromAddress = parseFromEmail(str);
 	    analysis.gsaUsername = parseGsaUsername(str);
@@ -235,7 +222,7 @@ imap.once('ready', function() {
 					var rendered_html = c2render.renderListCart(c2render.generateCart(data));
 					var subject = "please approve Cart Number: "+cartId;
 					var from = GSA_USERNAME;
-					sendFrDynoCart(from, recipientEmail, subject, rendered_html)
+					sendFrDynoCart(DYNO_CART_SENDER,from, recipientEmail, subject, rendered_html)
 				    });
 				};
 				http.request(options, callback).end();
@@ -252,7 +239,7 @@ imap.once('ready', function() {
 							  analysis.fromAddress,
 							  analysis.cartNumber);
 
-			    sendFrDynoCart(analysis.fromAddress,
+			    sendFrDynoCart(DYNO_CART_SENDER,analysis.fromAddress,
 					   simulatedMapOfUserNameToEmail[analysis.gsaUsername],
 					   subject,
 					   emailBody			    
