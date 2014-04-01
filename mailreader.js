@@ -1,6 +1,4 @@
-// In the morning, parse an actual "APPROVE" or "DISAPPROVE" message
-// and do something about parsing comments.
-
+// Now need to add the 
 var http = require('http');
 var Imap = require('imap'),
 inspect = require('util').inspect;
@@ -86,6 +84,8 @@ var imap = new Imap({
 });
 
 function openInbox(cb) {
+// But "true" here if you want to leave the emails you are reading in place...
+// probably this should be a command-line argument for debugging purposes.
     imap.openBox('INBOX', false, cb);
 }
 
@@ -106,10 +106,10 @@ EmailAnalysis.prototype = new EmailAnalysis;
 function parseCompleteEmail(str,reg) {
     var myArray = reg.exec(str);
     if (myArray) {
-//	var arrayLength = myArray.length;
-//	for (var i = 0; i < arrayLength; i++) {
-//            console.log("number "+myArray[i]);
-//	}
+	//	var arrayLength = myArray.length;
+	//	for (var i = 0; i < arrayLength; i++) {
+	//            console.log("number "+myArray[i]);
+	//	}
 	var result = myArray[1];
 	return result;
     }
@@ -151,7 +151,16 @@ function parseDISAPPROVE(str) {
     var reg = /^(DISAPPROVE)$/gm;
     return parseCompleteEmail(str,reg);
 }
-	    
+
+// This is rather an ugly way of doing this...
+// all of these regexs could be made more efficient but 
+// focusing on the proper parts, and not runing over the whole
+// email---improvement for the future.
+function parseInitiationComment(str) {
+    var reg = /\[Atn: \S+@\S+\.\S+\]([\s\S]*?)<BR><BR>/gm;
+    return parseCompleteEmail(str,reg);
+}
+
 function consolePrint(analysis) {
     console.log("analysis.category "+analysis.category);
     console.log("analysis.attention "+analysis.attention);
@@ -167,10 +176,14 @@ function analyze_category(str) {
     var reg = /Subject: GSA Advantage! cart # (\d+)/gm;
     var initiationCartNumber = parseCompleteEmail(str,reg);
     if (initiationCartNumber) {
+	console.log("Total initiation email = "+str);
 	analysis.category = "initiation";
 	analysis.cartNumber = initiationCartNumber;
 	var atn = parseAtnFromGSAAdvantage(str);
 	analysis.attention = atn;
+	var comment = parseInitiationComment(str);
+	console.log("comment = "+comment);
+	analysis.initiationComment = comment;
 	consolePrint(analysis);
 	return analysis;
     } else {
@@ -194,9 +207,8 @@ function analyze_category(str) {
 function processInitiation(analysis) {
     var recipientEmail = analysis.attention;
     var cartId = analysis.cartNumber;
-    console.log('XXXX:' + recipientEmail);
-    console.log('YYY:' + cartId);
     if (cartId && recipientEmail) {
+	console.log("inside process Initiation");
 	var options = {
 	    host: 'gsa-advantage-scraper',
 	    path: String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
@@ -216,6 +228,7 @@ function processInitiation(analysis) {
 		var data = eval(str);
 		var rendered_html = c2render.renderListCart(c2render.generateCart(data));
 		var subject = "please approve Cart Number: "+cartId;
+		rendered_html = "<p>Here is the comment sent to you:</p><p>BEGIN COMMENT</p><p>"+analysis.initiationComment+"</p><p>END COMMENT</p>" + rendered_html;
 		rendered_html = "<p></p><p>------------------</p><p>Please reply with the word 'APPROVE' or 'DISAPPROVE' begining a line with nothing else on that line.</p>" + rendered_html;
 		var from = GSA_USERNAME;
 		sendFrDynoCart(DYNO_CART_SENDER,from, recipientEmail, subject, rendered_html)
@@ -253,9 +266,18 @@ function processApprovalReply(analysis) {
 imap.once('ready', function() {
 
     openInbox(function(err, box) {
-	if (err) throw err;
-	imap.search([ 'UNSEEN', ['SINCE', 'May 20, 2010'] ], function(err, results) {
+	if (err) {
+	    console.log("Yes, I got an err param: "+err);
+	    throw err;
+	}
+	imap.search([ 'UNSEEN' ], function(err, results) {
 	    if (err) throw err;
+	    if (results == null || results.length == 0) {
+		console.log("Nothing to fetch!");
+		console.log(err);
+		// It's okay to kill here because presumably we have nothing to do..
+		process.exit(code=0);
+       	    }
 	    var f = imap.fetch(results, { bodies: '', markSeen: true });
 	    f.on('message', function(msg, seqno) {
 		console.log('Message #%d', seqno);
@@ -297,6 +319,12 @@ imap.once('ready', function() {
 	    f.once('end', function() {
 		console.log('Done fetching all messages!');
 		imap.end();
+		// We would like to exit, but doing so on this event 
+		// ends this process to soon...if necessary, we could figure out
+		// how to wait on all threads and count the messages processed,
+		// but that is a low priority at present.
+		// So you kill the process by hand...yukky.
+		//		process.exit(code=0);
 	    });
 	});
     });
@@ -310,4 +338,6 @@ imap.once('end', function() {
     console.log('Connection ended');
 });
 
+
 imap.connect();
+
