@@ -168,7 +168,7 @@ function consolePrint(analysis) {
     console.log("analysis.date "+analysis.date);
     console.log("analysis.approve "+analysis.approve);
     console.log("analysis.disapprove "+analysis.disapprove);
-    console.log("analysis.cart "+analysis.cart);
+    console.log("analysis.cartItems "+analysis.cartItems);
 }
 function analyze_category(str) {
     var analysis = new EmailAnalysis();
@@ -182,7 +182,7 @@ function analyze_category(str) {
 	analysis.cartNumber = initiationCartNumber;
 	analysis.attention = parseAtnFromGSAAdvantage(str);
 	analysis.initiationComment = parseInitiationComment(str);
-	consolePrint(analysis);
+//	consolePrint(analysis);
 	return analysis;
     } else {
 	var reg = /Re: please approve Cart Number: (\d+)/gm;
@@ -195,7 +195,7 @@ function analyze_category(str) {
 	    analysis.date = parseDate(str);
 	    analysis.approve = parseAPPROVE(str);
 	    analysis.disapprove = parseDISAPPROVE(str);
-	    consolePrint(analysis);
+//	    consolePrint(analysis);
 	    return analysis;
 	}
     }
@@ -204,23 +204,27 @@ function analyze_category(str) {
 
 function executeInitiationMailDelivery(path,analysis) {
     var options = {
-	host: 'localhost',
-	port: '3000',
+	uri: 'http://localhost:3000'+path,
 	method: 'POST',
 	json: analysis,
-	path: String.format(path)
+	path: ""
     };
 
 // Really we don't have anything to do, though 
 // I suppose in a perfect world we wouldn't mark 
 // the email as seen until this succeeds..
     function callback(error, response, body) {
+        console.log("callback from Ruby:"+path);
+        console.log("error:"+error);
+        console.log("response:"+response.statusCode);
+
 	if (!error && response.statusCode == 200) {
-	    var info = JSON.parse(body);
 	    console.log(body);
-	    console.log(info);
 	}
     }
+    console.log("making request to Ruby:"+path);
+    console.log("Data is:");
+    console.log(JSON.stringify(analysis,null,4));
     request(options, callback);
 }
 
@@ -241,84 +245,19 @@ function processInitiation(analysis) {
 //		console.log(info);
 
 		var data = eval(info);
-		analysis.cart = data;
+		analysis.cartItems = data;
 
-		executeInitiationMailDelivery('/path',analysis);
-		consolePrint(analysis);
-		console.log(JSON.stringify(analysis,null,4));
+		executeInitiationMailDelivery('/send_cart',analysis);
+//		consolePrint(analysis);
+//		console.log(JSON.stringify(analysis,null,4));
 	    }
 	}
 	request(options, callback);
     }
 }
-/*
-function processInitiationOld(analysis) {
-    var recipientEmail = analysis.attention;
-    if (analysis.cartNumber && recipientEmail) {
-	console.log("inside process Initiation");
-	var options = {
-            host: 'gsa-advantage-scraper',
-            path: String.format('/cgi-bin/gsa-adv-cart.py?p={0}&u={1}&cart_id={2}',
-				encodeURIComponent(GSA_PASSWORD),encodeURIComponent(GSA_USERNAME),analysis.cartNumber)
-	};
-
-	callback = function(response) {
-	    var str = '';
-
-	    //another chunk of data has been recieved, so append it to `str`
-	    response.on('data', function (chunk) {
-		str += chunk;
-	    });
-
-	    //the whole response has been recieved, so we just print it out here
-	    response.on('end', function () {
-		var data = eval(str);
-		analysis.cart = data;
-
-		executeInitiationMailDelivery(analysis);
-		consolePrint(analysis);
-		console.log(JSON.stringify(analysis,null,4));
-
-// Eventually, this should all go away...
-		var rendered_html = c2render.renderListCart(c2render.generateCart(data));
-		var subject = "please approve Cart Number: "+analysis.cartNumber;
-		rendered_html = "<p>Here is the comment sent to you:</p><p>BEGIN COMMENT</p><p>"+analysis.initiationComment+"</p><p>END COMMENT</p>" + rendered_html;
-		rendered_html = "<p></p><p>------------------</p><p>Please reply with the word 'APPROVE' or 'DISAPPROVE' begining a line with nothing else on that line.</p>" + rendered_html;
-		var from = GSA_USERNAME;
-		sendFrDynoCart(DYNO_CART_SENDER,from, recipientEmail, subject, rendered_html)
-	    });
-	};
-	http.request(options, callback).end();
-    };
-}
-*/
 
 function processApprovalReply(analysis) {
-/*
-    // Now we must treat this as a reply...
-    // But in fact I have no endpoint to sent this to.
-    // Therefore as a stopgap I will send an "approval received" 
-    // email to the originator...if I can determine it!
-    // To simulate this, I have created a 
-    var approved = (analysis.approve && !analysis.disapprove);
-    var subject = (approved ? "Approved" : "Disapproved") + " for Cart Number: "+analysis.cartNumber;
-
-    var approvalMessage = approved ? "{1} approved" : "{1} disapproved";
-    var approvalInstruction = approved ? "<p>Please purchase that cart with all deliberate speed.</p>" : "<p>You may wish to contact the approver for more explanation.</p>";
-
-    var emailBody = String.format('At time {0}, approver '+approvalMessage+' Cart Number {2}.  {3}',
-				  analysis.date,
-				  analysis.fromAddress,
-				  analysis.cartNumber,
-				  approvalInstruction);
-
-    sendFrDynoCart(DYNO_CART_SENDER,analysis.fromAddress,
-		   simulatedMapOfUserNameToEmail[analysis.gsaUsername],
-		   subject,
-		   emailBody			    
-		  );
-*/
-    executeInitiationMailDelivery('/notification',analysis);
+    executeInitiationMailDelivery('/approval_reply_received',analysis);
 }
 
 imap.once('ready', function() {
