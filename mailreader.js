@@ -84,7 +84,7 @@ var imap = new Imap({
 function openInbox(cb) {
 // But "true" here if you want to leave the emails you are reading in place...
 // probably this should be a command-line argument for debugging purposes.
-    imap.openBox('INBOX', true, cb);
+    imap.openBox('INBOX', false, cb);
 }
 
 // Currently these are operating on the COMPLETE 
@@ -241,15 +241,10 @@ function processInitiation(analysis) {
 	function callback(error, response, body) {
 	    if (!error && response.statusCode == 200) {
 		var info = JSON.parse(body);
-//		console.log(body);
-//		console.log(info);
-
 		var data = eval(info);
 		analysis.cartItems = data;
 
 		executeInitiationMailDelivery('/send_cart',analysis);
-//		consolePrint(analysis);
-//		console.log(JSON.stringify(analysis,null,4));
 	    }
 	}
 	request(options, callback);
