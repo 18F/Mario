@@ -84,7 +84,9 @@ var imap = new Imap({
 function openInbox(cb) {
 // But "true" here if you want to leave the emails you are reading in place...
 // probably this should be a command-line argument for debugging purposes.
-    imap.openBox('INBOX', false, cb);
+    console.log("imap = :"+imap.user);
+    console.log("imap = :"+imap.password);
+    imap.openBox('INBOX', true, cb);
 }
 
 // Currently these are operating on the COMPLETE 
@@ -114,9 +116,17 @@ function parseCartIdFromGSAAdvantage(str) {
     return parseCompleteEmail(str,reg);
 }
 
-function parseAtnFromGSAAdvantage(str) {
+function parseAtnFromGSAAdvantageOld(str) {
     var reg = /\[Atn: (\S+@\S+\.\S+)\]/gm;
     return parseCompleteEmail(str,reg);
+}
+
+function parseAtnFromGSAAdvantage(str) {
+    var areg = /\[Atn: (\S+)\]/gm;
+    var attn =  parseCompleteEmail(str,areg);
+    var ereg = /(\S+@\S+\.\S+)/gm;
+    var email =  parseCompleteEmail(attn,ereg);
+    return { "attn" : attn, "email" : email };
 }
 
 function parseFromEmail(str) {
@@ -157,7 +167,7 @@ function parseInitiationComment(str) {
 }
 
 function consolePrintJSON(analysis) {
-
+    console.log(JSON.stringify(analysis,null,4));
 }
 function consolePrint(analysis) {
     console.log("analysis.category "+analysis.category);
@@ -180,9 +190,11 @@ function analyze_category(str) {
 	}
 	analysis.category = "initiation";
 	analysis.cartNumber = initiationCartNumber;
-	analysis.attention = parseAtnFromGSAAdvantage(str);
+	analysis.approvalGroup = parseAtnFromGSAAdvantage(str).attn;
+	analysis.email = parseAtnFromGSAAdvantage(str).email;
 	analysis.initiationComment = parseInitiationComment(str);
-//	consolePrint(analysis);
+	console.log("cart initiation");
+        consolePrintJSON(analysis);
 	return analysis;
     } else {
 	var reg = /Re: please approve Cart Number: (\d+)/gm;
@@ -195,7 +207,8 @@ function analyze_category(str) {
 	    analysis.date = parseDate(str);
 	    analysis.approve = parseAPPROVE(str);
 	    analysis.disapprove = parseDISAPPROVE(str);
-//	    consolePrint(analysis);
+	    console.log("approval request");
+            consolePrintJSON(analysis);
 	    return analysis;
 	}
     }
@@ -216,7 +229,7 @@ function executeInitiationMailDelivery(path,analysis) {
     function callback(error, response, body) {
         console.log("callback from Ruby:"+path);
         console.log("error:"+error);
-        console.log("response:"+response.statusCode);
+//        console.log("response:"+response.statusCode);
 
 	if (!error && response.statusCode == 200) {
 	    console.log(body);
@@ -229,8 +242,7 @@ function executeInitiationMailDelivery(path,analysis) {
 }
 
 function processInitiation(analysis) {
-    var recipientEmail = analysis.attention;
-    if (analysis.cartNumber && recipientEmail) {
+    if (analysis.cartNumber) {
 	console.log("inside process Initiation");
 	var options = {
 	    url: configs().GSA_SCRAPE_URL + 
@@ -242,7 +254,7 @@ function processInitiation(analysis) {
 	    if (!error && response.statusCode == 200) {
 		var info = JSON.parse(body);
 		var data = eval(info);
-		analysis.cartItems = data;
+		analysis.cartItems = data
 
 		executeInitiationMailDelivery('/send_cart',analysis);
 	    }
@@ -323,6 +335,7 @@ imap.once('ready', function() {
 });
 
 imap.once('error', function(err) {
+    console.log('IMAP ERROR');
     console.log(err);
 });
 
