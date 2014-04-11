@@ -179,6 +179,7 @@ function consolePrint(analysis) {
     console.log("analysis.approve "+analysis.approve);
     console.log("analysis.disapprove "+analysis.disapprove);
     console.log("analysis.cartItems "+analysis.cartItems);
+    console.log("analysis.cartName "+analysis.cartName);
 }
 function analyze_category(str) {
     var analysis = new EmailAnalysis();
@@ -251,11 +252,14 @@ function processInitiation(analysis) {
 	};
 
 	function callback(error, response, body) {
+	    console.log("Back from Scraper");
 	    if (!error && response.statusCode == 200) {
+		console.log(body);
 		var info = JSON.parse(body);
 		var data = eval(info);
 		analysis.cartItems = data
 
+		console.log(JSON.stringify(analysis,null,4));
 		executeInitiationMailDelivery('/send_cart',analysis);
 	    }
 	}
