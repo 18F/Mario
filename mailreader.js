@@ -84,8 +84,6 @@ var imap = new Imap({
 function openInbox(cb) {
 // But "true" here if you want to leave the emails you are reading in place...
 // probably this should be a command-line argument for debugging purposes.
-    console.log("imap = :"+imap.user);
-    console.log("imap = :"+imap.password);
     imap.openBox('INBOX', true, cb);
 }
 
