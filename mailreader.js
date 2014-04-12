@@ -257,11 +257,15 @@ function processInitiation(analysis) {
 		console.log(body);
 		var info = JSON.parse(body);
 		var data = eval(info);
-		analysis.cartItems = data
+		analysis.cartItems = data['cartItems'];
+		analysis.cartName = data['cartName'];
 
 		console.log(JSON.stringify(analysis,null,4));
 		executeInitiationMailDelivery('/send_cart',analysis);
-	    }
+	    } else {
+		console.log("error = "+error);
+		console.log("statusCode = "+response.statusCode);
+		}
 	}
 	request(options, callback);
     }
