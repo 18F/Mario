@@ -196,7 +196,7 @@ function analyze_category(str) {
         consolePrintJSON(analysis);
 	return analysis;
     } else {
-	var reg = /Re: please approve Cart Number: (\d+)/gm;
+	var reg = /Re: Please approve Cart Number: (\d+)/gm;
 	var approvalCartNumber = parseCompleteEmail(str,reg);
 	if (approvalCartNumber) {
 	    analysis.cartNumber = approvalCartNumber;
@@ -211,6 +211,7 @@ function analyze_category(str) {
 	    return analysis;
 	}
     }
+    console.log("FFFFFFFFFFF");
     return null;
 }
 
