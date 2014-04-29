@@ -27,3 +27,4 @@ tramp
 
 # elpa packages
 /elpa/elpa
+*.DS_Store
