@@ -160,7 +160,7 @@ function parseDISAPPROVE(str) {
 // focusing on the proper parts, and not runing over the whole
 // email---improvement for the future.
 function parseInitiationComment(str) {
-    var reg = /\[Atn: \S+@\S+\.\S+\]([\s\S]*?)<BR><BR>/gm;
+    var reg = /\[Atn: \S+]([\s\S]*?)<BR><BR>/gm;
     return parseCompleteEmail(str,reg);
 }
 
