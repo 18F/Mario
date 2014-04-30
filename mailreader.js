@@ -84,7 +84,7 @@ var imap = new Imap({
 function openInbox(cb) {
 // But "true" here if you want to leave the emails you are reading in place...
 // probably this should be a command-line argument for debugging purposes.
-    imap.openBox('INBOX', true, cb);
+    imap.openBox('INBOX', false, cb);
 }
 
 // Currently these are operating on the COMPLETE 
@@ -273,6 +273,7 @@ function processInitiation(analysis) {
 function processApprovalReply(analysis) {
     executeInitiationMailDelivery('/approval_reply_received',analysis);
 }
+var GLOBAL_MESSAGES = [];
 
 imap.once('ready', function() {
 
@@ -300,27 +301,16 @@ imap.once('ready', function() {
 		    });
 
 		    stream.on('end', function() {
-			// We must categorize the email, the most basic 
-			// categorization being a two:
-			// *) An initiation email send from GSA Advantage.
-			// *) A reply.
-			var analysis = analyze_category(buffer);
-			if (!analysis) {
-			    console.log('Cannot categorize, doing nothing!');
-			} else if (analysis.category == "initiation") {
-			    processInitiation(analysis);
-			} else if (analysis.category == "approvalreply") {
-			    processApprovalReply(analysis);
-			} else {
-			    console.log('Unimplemented Category:'+analysis.category);
-  			};
+			// I used to put this here, but am moving out 
+			// to mark as unread faster---might have to 
+			// move even further out
+			GLOBAL_MESSAGES.push(buffer);
 		    });
 
 		    msg.once('attributes', function(attrs) {
 			console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
 		    });
 		    msg.once('end', function() {
-			console.log(prefix + 'Finished');
 		    });
 		});
 	    });
@@ -330,6 +320,19 @@ imap.once('ready', function() {
 	    f.once('end', function() {
 		console.log('Done fetching all messages!');
 		imap.end();
+		GLOBAL_MESSAGES.forEach(function(buffer) {
+		    var analysis = analyze_category(buffer);
+		    if (!analysis) {
+			console.log('Cannot categorize, doing nothing!');
+		    } else if (analysis.category == "initiation") {
+			processInitiation(analysis);
+		    } else if (analysis.category == "approvalreply") {
+			processApprovalReply(analysis);
+		    } else {
+			console.log('Unimplemented Category:'+analysis.category);
+  		    };
+		    }
+		);
 		// We would like to exit, but doing so on this event 
 		// ends this process to soon...if necessary, we could figure out
 		// how to wait on all threads and count the messages processed,
