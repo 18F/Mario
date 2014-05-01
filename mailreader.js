@@ -6,6 +6,25 @@ inspect = require('util').inspect;
 
 var c2render = require('./c2render');
 
+var MailParser = require("mailparser").MailParser,
+mailparser = new MailParser();
+
+// setup an event listener when the parsing finishes
+mailparser.on("end", function(mail_object){
+	    var analysis = analyze_category(mail_object);
+	    if (!analysis) {
+		console.log('Cannot categorize, doing nothing!');
+	    } else if (analysis.category == "initiation") {
+		processInitiation(analysis);
+	    } else if (analysis.category == "approvalreply") {
+		processApprovalReply(analysis);
+	    } else {
+		console.log('Unimplemented Category:'+analysis.category);
+	    };
+
+});
+
+
 // mail sending stuff copied from mailsender.js...
 fs = require('fs');
 var http = require('http');
@@ -84,7 +103,7 @@ var imap = new Imap({
 function openInbox(cb) {
 // But "true" here if you want to leave the emails you are reading in place...
 // probably this should be a command-line argument for debugging purposes.
-    imap.openBox('INBOX', false, cb);
+    imap.openBox('INBOX', true, cb);
 }
 
 // Currently these are operating on the COMPLETE 
@@ -154,6 +173,18 @@ function parseDISAPPROVE(str) {
     var reg = /^(DISAPPROVE)$/gm;
     return parseCompleteEmail(str,reg);
 }
+// This is dangerous --- if this string changes (which is 
+// produced the C2 project, so it can't be set up here,
+// then this will cause a problem.
+function parseApproveComment(str) {
+    var reg = /([\s\S]*?)^APPROVE/gm;
+    return parseCompleteEmail(str,reg);
+}
+
+function parseDisapproveComment(str) {
+    var reg = /([\s\S]*?)^DISAPPROVE/gm;
+    return parseCompleteEmail(str,reg);
+}
 
 // This is rather an ugly way of doing this...
 // all of these regexs could be made more efficient but 
@@ -164,6 +195,10 @@ function parseInitiationComment(str) {
     return parseCompleteEmail(str,reg);
 }
 
+function parseBodyFromEmail(str) {
+    var reg = /\[Atn: \S+]([\s\S]*?)/m;
+    
+}
 function consolePrintJSON(analysis) {
     console.log(JSON.stringify(analysis,null,4));
 }
@@ -179,33 +214,42 @@ function consolePrint(analysis) {
     console.log("analysis.cartItems "+analysis.cartItems);
     console.log("analysis.cartName "+analysis.cartName);
 }
-function analyze_category(str) {
+function analyze_category(mail_object) {
     var analysis = new EmailAnalysis();
-    var reg = /Subject: GSA Advantage! cart # (\d+)/gm;
-    var initiationCartNumber = parseCompleteEmail(str,reg);
+    var reg = /GSA Advantage! cart # (\d+)/gm;
+    var initiationCartNumber = parseCompleteEmail(mail_object.subject,reg);
+
+    console.log("html = "+mail_object.html);
+    console.log("text = "+mail_object.text);
+    console.log("subject = "+mail_object.subject);
+    console.log("cartNumber = "+initiationCartNumber);
     if (initiationCartNumber) {
 	if (configs().MODE == "debug") {
 	    console.log("Total initiation email = "+str);
 	}
 	analysis.category = "initiation";
 	analysis.cartNumber = initiationCartNumber;
-	analysis.approvalGroup = parseAtnFromGSAAdvantage(str).attn;
-	analysis.email = parseAtnFromGSAAdvantage(str).email;
-	analysis.initiationComment = parseInitiationComment(str);
+	attentionParsed = parseAtnFromGSAAdvantage(mail_object.html);
+	analysis.approvalGroup = attentionParsed.attn;
+	analysis.email = attentionParsed.email;
+	analysis.initiationComment = parseInitiationComment(mail_object.html);
 	console.log("cart initiation");
         consolePrintJSON(analysis);
 	return analysis;
     } else {
 	var reg = /Re: Please approve Cart Number: (\d+)/gm;
-	var approvalCartNumber = parseCompleteEmail(str,reg);
+	var approvalCartNumber = parseCompleteEmail(mail_object.subject,reg);
 	if (approvalCartNumber) {
 	    analysis.cartNumber = approvalCartNumber;
 	    analysis.category = "approvalreply";	    
-	    analysis.fromAddress = parseFromEmail(str);
-	    analysis.gsaUsername = parseGsaUsername(str);
-	    analysis.date = parseDate(str);
-	    analysis.approve = parseAPPROVE(str);
-	    analysis.disapprove = parseDISAPPROVE(str);
+
+	    
+	    analysis.fromAddress = mail_object.from[0].address;
+	    analysis.gsaUsername = mail_object.to[0].name;
+	    analysis.date = mail_object.date;
+	    analysis.approve = parseAPPROVE(mail_object.text);
+	    analysis.disapprove = parseDISAPPROVE(mail_object.text);
+	    analysis.comment = analysis.approve ? parseApproveComment(mail_object.text) : parseDisapproveComment(mail_object.text);
 	    console.log("approval request");
             consolePrintJSON(analysis);
 	    return analysis;
@@ -321,16 +365,8 @@ imap.once('ready', function() {
 		console.log('Done fetching all messages!');
 		imap.end();
 		GLOBAL_MESSAGES.forEach(function(buffer) {
-		    var analysis = analyze_category(buffer);
-		    if (!analysis) {
-			console.log('Cannot categorize, doing nothing!');
-		    } else if (analysis.category == "initiation") {
-			processInitiation(analysis);
-		    } else if (analysis.category == "approvalreply") {
-			processApprovalReply(analysis);
-		    } else {
-			console.log('Unimplemented Category:'+analysis.category);
-  		    };
+		    mailparser.write(buffer);
+		    mailparser.end();
 		    }
 		);
 		// We would like to exit, but doing so on this event 

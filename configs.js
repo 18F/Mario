@@ -5,7 +5,7 @@ module.exports = function(){
     case 'debug':
         return {
 	    'MODE':process.env.NODE_ENV,
-	    'DYNO_CART_SENDER':'communicart.sender@gmail.com',
+	    'DYNO_CART_SENDER':'communicart.test@gmail.com',
 	    'SENDER_CREDENTIALS':process.env.COMMUNICART_DOT_SENDER,
 	    'GSA_SCRAPE_URL' :'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
 	    'GSA_PASSWORD': process.env.GSA_PASSWORD,
@@ -15,7 +15,7 @@ module.exports = function(){
     case 'development':
         return {
 	    'MODE':process.env.NODE_ENV,
-	    'DYNO_CART_SENDER':'communicart.sender@gmail.com',
+	    'DYNO_CART_SENDER':'communicart.test@gmail.com',
 	    'SENDER_CREDENTIALS':process.env.COMMUNICART_DOT_SENDER,
 	    'GSA_SCRAPE_URL' :'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
 	    'GSA_PASSWORD': process.env.GSA_PASSWORD,
@@ -25,7 +25,7 @@ module.exports = function(){
     default:
         return {
 	    'MODE':process.env.NODE_ENV,
-	    'DYNO_CART_SENDER':'communicart.sender@gmail.com',
+	    'DYNO_CART_SENDER':'communicart.test@gmail.com',
 	    'SENDER_CREDENTIALS':process.env.COMMUNICART_DOT_SENDER,
 	    'GSA_SCRAPE_URL' :'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
 	    'GSA_PASSWORD': process.env.GSA_PASSWORD,
