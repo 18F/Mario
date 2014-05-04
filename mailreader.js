@@ -186,6 +186,11 @@ function parseDisapproveComment(str) {
     return parseCompleteEmail(str,reg);
 }
 
+function parseReplyComment(str) {
+    var reg = /([\s\S]*?)--------/gm;
+    return parseCompleteEmail(str,reg);
+}
+
 // This is rather an ugly way of doing this...
 // all of these regexs could be made more efficient but 
 // focusing on the proper parts, and not runing over the whole
@@ -242,7 +247,6 @@ function analyze_category(mail_object) {
 	if (approvalCartNumber) {
 	    analysis.cartNumber = approvalCartNumber;
 	    analysis.category = "approvalreply";	    
-
 	    
 	    analysis.fromAddress = mail_object.from[0].address;
 	    analysis.gsaUsername = mail_object.to[0].name;
@@ -250,6 +254,7 @@ function analyze_category(mail_object) {
 	    analysis.approve = parseAPPROVE(mail_object.text);
 	    analysis.disapprove = parseDISAPPROVE(mail_object.text);
 	    analysis.comment = analysis.approve ? parseApproveComment(mail_object.text) : parseDisapproveComment(mail_object.text);
+	    analysis.humanResponseText = parseReplyComment(mail_object.text);
 	    console.log("approval request");
             consolePrintJSON(analysis);
 	    return analysis;
@@ -352,7 +357,7 @@ imap.once('ready', function() {
 		    });
 
 		    msg.once('attributes', function(attrs) {
-			console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
+			console.log(prefix + 'Attributes: %s', inspect(attrs,false, 8));
 		    });
 		    msg.once('end', function() {
 		    });
