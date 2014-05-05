@@ -4,8 +4,6 @@ var request = require('request');
 var Imap = require('imap'),
 inspect = require('util').inspect;
 
-var c2render = require('./c2render');
-
 var MailParser = require("mailparser").MailParser,
 mailparser = new MailParser();
 
