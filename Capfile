@@ -1,3 +1,4 @@
+# require "capistrano/node-deploy"
 load 'deploy'
 # Uncomment if you are using Rails' asset pipeline
     # load 'deploy/assets'
