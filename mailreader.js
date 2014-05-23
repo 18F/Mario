@@ -1,4 +1,4 @@
-// Now need to add the 
+// Now need to add the
 var http = require('http');
 var request = require('request');
 var Imap = require('imap'),
@@ -81,9 +81,9 @@ function sendFrDynoCart(dynoCartSender,from, recipients, subject, message) {
 if (!String.format) {
     String.format = function(format) {
 	var args = Array.prototype.slice.call(arguments, 1);
-	return format.replace(/{(\d+)}/g, function(match, number) { 
+	return format.replace(/{(\d+)}/g, function(match, number) {
 	    return typeof args[number] != 'undefined'
-		? args[number] 
+		? args[number]
 		: match
 	    ;
 	});
@@ -104,8 +104,8 @@ function openInbox(cb) {
     imap.openBox('INBOX', true, cb);
 }
 
-// Currently these are operating on the COMPLETE 
-// email message.  This is very inefficient, and 
+// Currently these are operating on the COMPLETE
+// email message.  This is very inefficient, and
 // can be made significantly better which the time comes.
 
 EmailAnalysis = function EmailAnalysis() {
@@ -171,7 +171,7 @@ function parseDISAPPROVE(str) {
     var reg = /^(DISAPPROVE)$/gm;
     return parseCompleteEmail(str,reg);
 }
-// This is dangerous --- if this string changes (which is 
+// This is dangerous --- if this string changes (which is
 // produced the C2 project, so it can't be set up here,
 // then this will cause a problem.
 function parseApproveComment(str) {
@@ -190,7 +190,7 @@ function parseReplyComment(str) {
 }
 
 // This is rather an ugly way of doing this...
-// all of these regexs could be made more efficient but 
+// all of these regexs could be made more efficient but
 // focusing on the proper parts, and not runing over the whole
 // email---improvement for the future.
 function parseInitiationComment(str) {
@@ -200,7 +200,7 @@ function parseInitiationComment(str) {
 
 function parseBodyFromEmail(str) {
     var reg = /\[Atn: \S+]([\s\S]*?)/m;
-    
+
 }
 function consolePrintJSON(analysis) {
     console.log(JSON.stringify(analysis,null,4));
@@ -244,8 +244,8 @@ function analyze_category(mail_object) {
 	var approvalCartNumber = parseCompleteEmail(mail_object.subject,reg);
 	if (approvalCartNumber) {
 	    analysis.cartNumber = approvalCartNumber;
-	    analysis.category = "approvalreply";	    
-	    
+	    analysis.category = "approvalreply";
+
 	    analysis.fromAddress = mail_object.from[0].address;
 	    analysis.gsaUsername = mail_object.to[0].name;
 	    analysis.date = mail_object.date;
@@ -264,14 +264,14 @@ function analyze_category(mail_object) {
 
 function executeInitiationMailDelivery(path,analysis) {
     var options = {
-	uri: 'http://localhost:3000'+path,
+	uri: 'http://localhost' + path, //TODO: Configuration file for this
 	method: 'POST',
 	json: analysis,
 	path: ""
     };
 
-// Really we don't have anything to do, though 
-// I suppose in a perfect world we wouldn't mark 
+// Really we don't have anything to do, though
+// I suppose in a perfect world we wouldn't mark
 // the email as seen until this succeeds..
     function callback(error, response, body) {
         console.log("callback from Ruby:"+path);
@@ -292,7 +292,7 @@ function processInitiation(analysis) {
     if (analysis.cartNumber) {
 	console.log("inside process Initiation");
 	var options = {
-	    url: configs().GSA_SCRAPE_URL + 
+	    url: configs().GSA_SCRAPE_URL +
 		String.format('?p={0}&u={1}&cart_id={2}',
 			      encodeURIComponent(configs().GSA_PASSWORD),encodeURIComponent(configs().GSA_USERNAME),analysis.cartNumber)
 	};
@@ -348,8 +348,8 @@ imap.once('ready', function() {
 		    });
 
 		    stream.on('end', function() {
-			// I used to put this here, but am moving out 
-			// to mark as unread faster---might have to 
+			// I used to put this here, but am moving out
+			// to mark as unread faster---might have to
 			// move even further out
 			GLOBAL_MESSAGES.push(buffer);
 		    });
@@ -372,7 +372,7 @@ imap.once('ready', function() {
 		    mailparser.end();
 		    }
 		);
-		// We would like to exit, but doing so on this event 
+		// We would like to exit, but doing so on this event
 		// ends this process to soon...if necessary, we could figure out
 		// how to wait on all threads and count the messages processed,
 		// but that is a low priority at present.
