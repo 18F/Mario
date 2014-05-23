@@ -17,8 +17,7 @@ role :app, "54.185.133.124"
 
 desc "Symlink configs"
  task :symlink_configs, :roles => :app do
-   run "ln -nfs #{deploy_to}/shared/config/configs.js #{release_path}/configs.js"
- end
+   run "ln -nfs #{deploy_to}/shared/configs.js #{release_path}/configs.js"
 end
 
-after "deploy:update_code", "deploy:symlink_configs"
+after "deploy:update_code", "symlink_configs"
