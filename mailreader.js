@@ -101,7 +101,7 @@ var imap = new Imap({
 function openInbox(cb) {
 // But "true" here if you want to leave the emails you are reading in place...
 // probably this should be a command-line argument for debugging purposes.
-    imap.openBox('INBOX', false, cb);
+    imap.openBox('INBOX', configs.LEAVE_EMAIL_IN_PLACE, cb);
 }
 
 // Currently these are operating on the COMPLETE
@@ -264,7 +264,7 @@ function analyze_category(mail_object) {
 
 function executeInitiationMailDelivery(path,analysis) {
     var options = {
-	uri: 'http://localhost' + path, //TODO: Configuration file for this
+	uri: configs().C2_SERVER_ENDPOINT + path, //TODO: Configuration file for this
 	method: 'POST',
 	json: analysis,
 	path: ""
