@@ -167,8 +167,8 @@ function parseAPPROVE(str) {
     return parseCompleteEmail(str,reg);
 }
 
-function parseDISAPPROVE(str) {
-    var reg = /^(DISAPPROVE)$/gm;
+function parseREJECT(str) {
+    var reg = /^(REJECT)$/gm;
     return parseCompleteEmail(str,reg);
 }
 // This is dangerous --- if this string changes (which is 
@@ -179,8 +179,8 @@ function parseApproveComment(str) {
     return parseCompleteEmail(str,reg);
 }
 
-function parseDisapproveComment(str) {
-    var reg = /([\s\S]*?)^DISAPPROVE/gm;
+function parseRejectComment(str) {
+    var reg = /([\s\S]*?)^REJECT/gm;
     return parseCompleteEmail(str,reg);
 }
 
@@ -250,8 +250,8 @@ function analyze_category(mail_object) {
 	    analysis.gsaUsername = mail_object.to[0].name;
 	    analysis.date = mail_object.date;
 	    analysis.approve = parseAPPROVE(mail_object.text);
-	    analysis.disapprove = parseDISAPPROVE(mail_object.text);
-	    analysis.comment = analysis.approve ? parseApproveComment(mail_object.text) : parseDisapproveComment(mail_object.text);
+	    analysis.disapprove = parseREJECT(mail_object.text);
+	    analysis.comment = analysis.approve ? parseApproveComment(mail_object.text) : parseRejectComment(mail_object.text);
 	    analysis.humanResponseText = parseReplyComment(mail_object.text);
 	    console.log("approval request");
             consolePrintJSON(analysis);
@@ -288,6 +288,20 @@ function executeInitiationMailDelivery(path,analysis) {
     request(options, callback);
 }
 
+function generalizeScraperTraits(cartItems) {
+    var len = cartItems.length;
+    for (var i = 0; i < len; i++) {
+	var citem = cartItems[i];
+	citem.traits = { "socio" : citem.socio,
+			 "features" : citem.features,
+                         "green" : citem.green };
+	delete citem["socio"];
+	delete citem["features"];
+	delete citem["green"];
+    }
+    return cartItems;
+}
+
 function processInitiation(analysis) {
     if (analysis.cartNumber) {
 	console.log("inside process Initiation");
@@ -299,11 +313,13 @@ function processInitiation(analysis) {
 
 	function callback(error, response, body) {
 	    console.log("Back from Scraper");
+// Here I'm going to pack socio, green, and features, which 
+// are known to the GSA SCRAPER into a single "JSON" object.
 	    if (!error && response.statusCode == 200) {
 		console.log(body);
 		var info = JSON.parse(body);
 		var data = eval(info);
-		analysis.cartItems = data['cartItems'];
+		analysis.cartItems = generalizeScraperTraits(data['cartItems']);
 		analysis.cartName = data['cartName'];
 
 		console.log(JSON.stringify(analysis,null,4));
