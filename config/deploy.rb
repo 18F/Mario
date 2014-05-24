@@ -20,4 +20,10 @@ desc "Symlink configs"
    run "ln -nfs #{deploy_to}/shared/configs.js #{release_path}/configs.js"
 end
 
+desc "Symlink configs"
+ task :install_npm_packages, :roles => :app do
+   run "cd #{deploy_to};npm install http; npm install request; npm install imap; npm install util; npm install mailparser; npm install nodemailer"
+end
+
 after "deploy:update_code", "symlink_configs"
+after "deploy:update_code", "install_npm_packages"
