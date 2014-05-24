@@ -1,0 +1,13 @@
+{
+  "name": "mario",
+  "description": "Part of the C2 package for handling email",
+  "author": "Rob and Raphy and 18F",
+  "dependencies": {
+    "http": ">= 0.10.x",
+    "request": ">= 2.x.x",
+    "imap": ">= 0.8.x",
+    "util": ">= 0.10.x",
+    "mailparser": ">= 0.4.x",
+    "nodemailer": ">= 0.6.x"
+  }
+}

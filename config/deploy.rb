@@ -22,7 +22,7 @@ end
 
 desc "Symlink configs"
  task :install_npm_packages, :roles => :app do
-   run "cd #{deploy_to};npm install http; npm install request; npm install imap; npm install util; npm install mailparser; npm install nodemailer"
+   run "cd #{release_path};npm install"
 end
 
 after "deploy:update_code", "symlink_configs"
