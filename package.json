@@ -5,6 +5,7 @@
   "dependencies": {
     "request": ">= 2.x.x",
     "imap": ">= 0.8.x",
+    "util": ">= 0.10.3",
     "mailparser": ">= 0.4.x",
     "nodemailer": ">= 0.6.x"
   }
