@@ -1,19 +1,21 @@
-require "rvm/capistrano"
+require 'capistrano/ext/multistage'
+require "bundler/capistrano"
 
+set :stages, %w(development staging production)
+set :default_stage, "development"
+require "rvm/capistrano"
 
 set :application, "mario"
 set :repository,  "https://github.com/18F/Mario.git"
-set :domain, '54.185.133.124'
+set :rails_env, :production
 set :branch, ENV['BRANCH'] || 'master'
-set :user, "ubuntu"
-set :scm, :git
 set :deploy_to, "/var/www/#{application}"
+set :user, "ubuntu"
+set :rvm_type, :user
+set :keep_releases, 6
+set :rvm_ruby_string, "2.1.1"
+set :scm, :git
 set :use_sudo, true
-
-
-role :app, "54.185.133.124"
-
-
 
 desc "Symlink configs"
  task :symlink_configs, :roles => :app do
