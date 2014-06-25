@@ -4,23 +4,7 @@ var request = require('request');
 var Imap = require('imap'),
 inspect = require('util').inspect;
 
-var MailParser = require("mailparser").MailParser,
-mailparser = new MailParser();
-
-// setup an event listener when the parsing finishes
-mailparser.on("end", function(mail_object){
-	    var analysis = analyze_category(mail_object);
-	    if (!analysis) {
-		console.log('Cannot categorize, doing nothing!');
-	    } else if (analysis.category == "initiation") {
-		processInitiation(analysis);
-	    } else if (analysis.category == "approvalreply") {
-		processApprovalReply(analysis);
-	    } else {
-		console.log('Unimplemented Category:'+analysis.category);
-	    };
-
-});
+var MailParser = require("mailparser").MailParser;
 
 
 // mail sending stuff copied from mailsender.js...
@@ -245,7 +229,6 @@ function analyze_category(mail_object) {
 	if (approvalCartNumber) {
 	    analysis.cartNumber = approvalCartNumber;
 	    analysis.category = "approvalreply";
-
 	    analysis.fromAddress = mail_object.from[0].address;
 	    analysis.gsaUsername = mail_object.to[0].name;
 	    analysis.date = mail_object.date;
@@ -353,6 +336,7 @@ imap.once('ready', function() {
 		// It's okay to kill here because presumably we have nothing to do..
 		process.exit(code=0);
        	    }
+	    console.log("results.length = "+results.length);
 	    var f = imap.fetch(results, { bodies: '', markSeen: true });
 	    f.on('message', function(msg, seqno) {
 		console.log('Message #%d', seqno);
@@ -368,6 +352,8 @@ imap.once('ready', function() {
 			// to mark as unread faster---might have to
 			// move even further out
 			GLOBAL_MESSAGES.push(buffer);
+			console.log("QQQQQQQQQ");
+			console.log("Just pushed :"+buffer);
 		    });
 
 		    msg.once('attributes', function(attrs) {
@@ -383,11 +369,27 @@ imap.once('ready', function() {
 	    f.once('end', function() {
 		console.log('Done fetching all messages!');
 		imap.end();
-		GLOBAL_MESSAGES.forEach(function(buffer) {
-		    mailparser.write(buffer);
+		arrayLength = GLOBAL_MESSAGES.length;
+		for (var i = 0; i < arrayLength; i++ ) {
+		    mailparser = new MailParser();
+
+		    // setup an event listener when the parsing finishes
+		    mailparser.on("end", function(mail_object){
+			    var analysis = analyze_category(mail_object);
+			    if (!analysis) {
+				console.log('Cannot categorize, doing nothing!');
+			    } else if (analysis.category == "initiation") {
+				processInitiation(analysis);
+			    } else if (analysis.category == "approvalreply") {
+				processApprovalReply(analysis);
+			    } else {
+				console.log('Unimplemented Category:'+analysis.category);
+			    };
+
+			});
+		    mailparser.write(GLOBAL_MESSAGES[i]);
 		    mailparser.end();
-		    }
-		);
+		}
 		// We would like to exit, but doing so on this event
 		// ends this process to soon...if necessary, we could figure out
 		// how to wait on all threads and count the messages processed,
