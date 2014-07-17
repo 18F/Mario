@@ -224,7 +224,7 @@ function analyze_category(mail_object) {
         consolePrintJSON(analysis);
 	return analysis;
     } else {
-  var reg = /^.*Communicart Approval Request from.*Please review Cart \#(\d+)\s?$/;
+  var reg = /^.*Communicart Approval Request from.*Please review Cart \#(\d+)/;
 	var approvalCartNumber = parseCompleteEmail(mail_object.subject,reg);
 	if (approvalCartNumber) {
 	    analysis.cartNumber = approvalCartNumber;
