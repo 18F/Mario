@@ -224,7 +224,7 @@ function analyze_category(mail_object) {
         consolePrintJSON(analysis);
 	return analysis;
     } else {
-	var reg = /Re: Please approve Cart Number: (\d+)/gm;
+  var reg = /^.*Communicart Approval Request from.*Please review Cart \#(\d+)\s?$/;
 	var approvalCartNumber = parseCompleteEmail(mail_object.subject,reg);
 	if (approvalCartNumber) {
 	    analysis.cartNumber = approvalCartNumber;
@@ -296,7 +296,7 @@ function processInitiation(analysis) {
 
 	function callback(error, response, body) {
 	    console.log("Back from Scraper");
-// Here I'm going to pack socio, green, and features, which 
+// Here I'm going to pack socio, green, and features, which
 // are known to the GSA SCRAPER into a single "JSON" object.
 	    if (!error && response.statusCode == 200) {
 		console.log(body);
