@@ -16,6 +16,7 @@ set :keep_releases, 6
 set :rvm_ruby_string, "2.1.1"
 set :scm, :git
 set :use_sudo, true
+set :normalize_asset_timestamps, false
 
 desc "Symlink configs"
  task :symlink_configs, :roles => :app do
