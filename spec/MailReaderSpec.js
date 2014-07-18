@@ -1,18 +1,31 @@
-// var fs = require('fs')
-// mailReaderCode = fs.readFileSync('./mailreader.js','utf-8')
-// eval(mailReaderCode)
-// require('mailreader')
 var mailReader = require('../mailreader');
 
 describe("MailReader", function() {
 
   describe("Reading an approval email", function() {
     beforeEach(function() {
+
+      mail = {
+        subject: 'my subject',
+        html: '<h1>my mail html</h1>',
+        text: 'more text\nAPPROVE',
+        from: [
+          { address: '111 first from address' }
+        ],
+        to: [
+          { name: '222 first name' }
+        ],
+        date: Date.now()
+      }
+
     });
 
-    it("does something with mailReader", function(){
-      expect(mailReader.analyze_category({ hi: 'there', does: 'it work?' })).toBeTruthy();
+    describe("#analyze_category", function(){
+      it("returns null", function(){
+        expect(mailReader.analyze_category(mail)).toBeNull();
+      });
     });
+
   });
 
 });
