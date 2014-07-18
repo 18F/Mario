@@ -413,3 +413,4 @@ imap.once('end', function() {
 
 imap.connect();
 
+exports.analyze_category = analyze_category;
