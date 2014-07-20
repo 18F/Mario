@@ -20,9 +20,9 @@ describe("MailReader", function() {
 
     });
 
-    describe("#analyze_category", function(){
+    describe("#analyzeCategory", function(){
       it("returns null", function(){
-        expect(mailReader.analyze_category(mail)).toBeNull();
+        expect(mailReader.analyzeCategory(mail)).toBeNull();
       });
     });
 
