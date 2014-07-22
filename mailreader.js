@@ -201,7 +201,7 @@ function consolePrint(analysis) {
     console.log("analysis.cartItems "+analysis.cartItems);
     console.log("analysis.cartName "+analysis.cartName);
 }
-function analyze_category(mail_object) {
+function analyzeCategory(mail_object) {
     var analysis = new EmailAnalysis();
     var reg = /GSA Advantage! cart # (\d+)/gm;
     var initiationCartNumber = parseCompleteEmail(mail_object.subject,reg);
@@ -375,7 +375,7 @@ imap.once('ready', function() {
 
 		    // setup an event listener when the parsing finishes
 		    mailparser.on("end", function(mail_object){
-			    var analysis = analyze_category(mail_object);
+			    var analysis = analyzeCategory(mail_object);
 			    if (!analysis) {
 				console.log('Cannot categorize, doing nothing!');
 			    } else if (analysis.category == "initiation") {
@@ -413,3 +413,4 @@ imap.once('end', function() {
 
 imap.connect();
 
+exports.analyzeCategory = analyzeCategory;
