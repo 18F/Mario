@@ -3,3 +3,4 @@ node_js:
     - "0.10.28"
 before_script:
     - "npm i -g jasmine-node"
+    - cp configs.js.EXAMPLE configs.js
