@@ -30,3 +30,4 @@ tramp
 *.DS_Store
 
 configs.js
+node_modules/
