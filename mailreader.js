@@ -13,8 +13,6 @@ var http = require('http');
 var nodemailer = require("nodemailer");
 var configs = require('./configs');
 
-var simulatedMapOfUserNameToEmail = configs().SIM_MAP_USER_EMAIL;
-
 var DYNO_CART_SENDER = configs().DYNO_CART_SENDER;
 var SENDER_CREDENTIALS = configs().SENDER_CREDENTIALS;
 
