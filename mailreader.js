@@ -4,14 +4,43 @@ var request = require('request');
 var Imap = require('imap'),
 inspect = require('util').inspect;
 
-var MailParser = require("mailparser").MailParser;
+var yaml = require('js-yaml');
+var fs   = require('fs');
 
+var MailParser = require("mailparser").MailParser;
 
 // mail sending stuff copied from mailsender.js...
 fs = require('fs');
 var http = require('http');
 var nodemailer = require("nodemailer");
 var configs = require('./configs');
+
+
+// Get the C2 yml, or throw exception on error
+try {
+  var c2_doc = yaml.safeLoad(fs.readFileSync(configs().C2_APPLICATION_YML_PATH, 'utf8'));
+  var c2_rel_doc = c2_doc[process.env.NODE_ENV || "test"];
+} catch (e) {
+  console.log("Existing because couldn't find C2 yml file");
+  process.exit();
+}
+
+// Get the Mario yml, or throw exception on error
+try {
+  var mario_doc = yaml.safeLoad(fs.readFileSync(configs().MARIO_YML_PATH, 'utf8'));
+  var mario_rel_doc = mario_doc[process.env.NODE_ENV || "test"];
+} catch (e) {
+  console.log("Existing because couldn't find mario yml file");
+  process.exit();
+}
+
+var approval_regexp = c2_rel_doc.email_title_for_approval_request_reg_exp;
+
+var cart_id_from_GSA_Advantage = new RegExp(mario_rel_doc.cart_id_from_GSA_Advantage,"gm");
+
+console.log(cart_id_from_GSA_Advantage);
+
+var approval_identifier = new RegExp(approval_regexp);
 
 var DYNO_CART_SENDER = configs().DYNO_CART_SENDER;
 var SENDER_CREDENTIALS = configs().SENDER_CREDENTIALS;
@@ -30,34 +59,6 @@ var dynoCartXport = instantiateGmailTransport(
     DYNO_CART_SENDER,
     SENDER_CREDENTIALS
 );
-
-function sendFrDynoCart(dynoCartSender,from, recipients, subject, message) {
-    var fromString = from + ' <' + dynoCartSender +'>';
-    if (configs().MODE == "debug") {
-	console.log('from is "' + fromString + '"');
-	console.log('recipient is "' + recipients + '"');
-	console.log('subject is "' + subject + '"');
-	console.log('___________');
-    }
-
-    dynoCartXport.sendMail(
-        {
-            from: fromString,
-            to: recipients,
-            subject: subject,
-            text: "you need an html capable email client",
-            html: message
-        },
-        function(error, response){
-            console.log("MAIL RESULT =========");
-            if (error) {
-                console.log("Mail Error:"+error);
-            } else {
-                console.log("Message sent(from " + from + "): " +
-                            response.message);
-            }
-        });
-}
 
 // taken from StackOverflow: http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format
 if (!String.format) {
@@ -107,9 +108,9 @@ function parseCompleteEmail(str,reg) {
     }
     return null;
 }
-
+// This is now an empty function...
 function parseCartIdFromGSAAdvantage(str) {
-    var reg = /GSA Advantage! cart # (\d+)/gm;
+    var reg = cart_id_from_GSA_Advantage;
     return parseCompleteEmail(str,reg);
 }
 
@@ -187,22 +188,13 @@ function parseBodyFromEmail(str) {
 function consolePrintJSON(analysis) {
     console.log(JSON.stringify(analysis,null,4));
 }
-function consolePrint(analysis) {
-    console.log("analysis.category "+analysis.category);
-    console.log("analysis.attention "+analysis.attention);
-    console.log("analysis.cartNumber "+analysis.cartNumber);
-    console.log("analysis.fromAddress "+analysis.fromAddress);
-    console.log("analysis.gsaUsername "+analysis.gsaUsername);
-    console.log("analysis.date "+analysis.date);
-    console.log("analysis.approve "+analysis.approve);
-    console.log("analysis.disapprove "+analysis.disapprove);
-    console.log("analysis.cartItems "+analysis.cartItems);
-    console.log("analysis.cartName "+analysis.cartName);
-}
+
 function analyzeCategory(mail_object) {
     var analysis = new EmailAnalysis();
-    var reg = /GSA Advantage! cart # (\d+)/gm;
-    var initiationCartNumber = parseCompleteEmail(mail_object.subject,reg);
+// This string technically comes from Advantage, not C2---but perhaps
+// We should move it into application.yml anyway!
+//    var reg = /GSA Advantage! cart # (\d+)/gm;
+    var initiationCartNumber = parseCompleteEmail(mail_object.subject,cart_id_from_GSA_Advantage);
 
     console.log("html = "+mail_object.html);
     console.log("text = "+mail_object.text);
@@ -222,8 +214,8 @@ function analyzeCategory(mail_object) {
         consolePrintJSON(analysis);
 	return analysis;
     } else {
-  var reg = /^.*Communicart Approval Request from.*Please review Cart \#(\d+)/;
-	var approvalCartNumber = parseCompleteEmail(mail_object.subject,reg);
+	var approvalCartNumber = parseCompleteEmail(mail_object.subject,
+						    approval_identifier);
 	if (approvalCartNumber) {
 	    analysis.cartNumber = approvalCartNumber;
 	    analysis.category = "approvalreply";
@@ -239,7 +231,6 @@ function analyzeCategory(mail_object) {
 	    return analysis;
 	}
     }
-    console.log("FFFFFFFFFFF");
     return null;
 }
 
@@ -257,7 +248,6 @@ function executeInitiationMailDelivery(path,analysis) {
     function callback(error, response, body) {
         console.log("callback from Ruby:"+path);
         console.log("error:"+error);
-//        console.log("response:"+response.statusCode);
 
 	if (!error && response.statusCode == 200) {
 	    console.log(body);

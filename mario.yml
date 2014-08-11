@@ -1,0 +1,13 @@
+
+# config/application.yml
+defaults: &defaults
+  cart_id_from_GSA_Advantage: "GSA Advantage! cart # (\\d+)"
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults
