@@ -166,7 +166,6 @@ function analyzeCategory(mail_object) {
 	    analysis.gsaUsername = mail_object.to[0].name;
 	    analysis.date = mail_object.date;
 	    analysis.approve = parseCompleteEmail(mail_object.text,approve_reg_exp);
-	    analysis.disapprove = parseREJECT(mail_object.text);
 	    analysis.disapprove = parseCompleteEmail(mail_object.text,reject_reg_exp);
 	    analysis.comment = analysis.approve ? 
 		parseCompleteEmail(mail_object.text,approve_comment_reg_exp) :
