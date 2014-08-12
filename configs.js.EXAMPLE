@@ -12,6 +12,7 @@ module.exports = function(){
 	    'GSA_USERNAME': process.env.GSA_USERNAME,
 	    'SIM_MAP_USER_EMAIL':{ "ROBERTLREAD" : "read.robert@gmail.com" },
 	    'C2_SERVER_ENDPOINT': 'http://localhost:3000',
+	    'C2_APPLICATION_YML_PATH': '/Users/robertread/projects/c2/config/application.yml',
 	    'LEAVE_EMAIL_IN_PLACE': false
 	};
     case 'development':
@@ -24,6 +25,7 @@ module.exports = function(){
 	    'GSA_USERNAME': process.env.GSA_USERNAME,
 	    'SIM_MAP_USER_EMAIL':{ "ROBERTLREAD" : "read.robert@gmail.com" },
 	    'C2_SERVER_ENDPOINT': 'http://localhost:3000',
+	    'C2_APPLICATION_YML_PATH': '/Users/robertread/projects/c2/config/application.yml',
 	    'LEAVE_EMAIL_IN_PLACE': false
 	};
     default:
@@ -36,6 +38,7 @@ module.exports = function(){
 	    'GSA_USERNAME': process.env.GSA_USERNAME,
 	    'SIM_MAP_USER_EMAIL':{ "ROBERTLREAD" : "read.robert@gmail.com" },
 	    'C2_SERVER_ENDPOINT': 'http://localhost:3000',
+	    'C2_APPLICATION_YML_PATH': '/Users/robertread/projects/c2/config/application.yml',
 	    'LEAVE_EMAIL_IN_PLACE': false
 	};
 
