@@ -2,6 +2,9 @@
 # config/application.yml
 defaults: &defaults
   cart_id_from_GSA_Advantage: "GSA Advantage! cart # (\\d+)"
+  atn_from_gsa_advantage: "\\[Atn: (\\S+)\\]"
+  email_from_gsa_advantage: "(\\S+@\\S+\\.\\S+)"
+  init_comment_from_gsa: "\\[Atn: \\S+]([\\s\\S]*?)<BR><BR>"
 
 development:
   <<: *defaults

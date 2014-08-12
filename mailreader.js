@@ -36,9 +36,18 @@ try {
 
 var approval_regexp = c2_rel_doc.email_title_for_approval_request_reg_exp;
 
-var cart_id_from_GSA_Advantage = new RegExp(mario_rel_doc.cart_id_from_GSA_Advantage,"gm");
+console.log(mario_rel_doc);
 
-console.log(cart_id_from_GSA_Advantage);
+var cart_id_from_GSA_Advantage = new RegExp(mario_rel_doc.cart_id_from_GSA_Advantage,"gm");
+var atn_from_gsa_advantage = new RegExp(mario_rel_doc.atn_from_gsa_advantage,"gm");
+var email_from_gsa_advantage = new RegExp(mario_rel_doc.email_from_gsa_advantage,"gm");
+var init_comment_from_gsa = new RegExp(mario_rel_doc.init_comment_from_gsa,"gm");
+
+var reject_reg_exp = new RegExp(c2_rel_doc.reject_reg_exp,"gm");
+var approve_reg_exp = new RegExp(c2_rel_doc.approve_reg_exp,"gm");
+var reject_comment_reg_exp = new RegExp(c2_rel_doc.reject_comment_reg_exp,"gm");
+var approve_comment_reg_exp = new RegExp(c2_rel_doc.approve_comment_reg_exp,"gm");
+var reply_comment_reg_exp = new RegExp(c2_rel_doc.reply_comment_reg_exp,"gm");
 
 var approval_identifier = new RegExp(approval_regexp);
 
@@ -101,6 +110,10 @@ EmailAnalysis = function EmailAnalysis() {
 
 EmailAnalysis.prototype = new EmailAnalysis;
 
+// This is rather an ugly way of doing this...
+// all of these regexs could be made more efficient but
+// focusing on the proper parts, and not runing over the whole
+// email---improvement for the future.
 function parseCompleteEmail(str,reg) {
     var myArray = reg.exec(str);
     if (myArray) {
@@ -108,83 +121,13 @@ function parseCompleteEmail(str,reg) {
     }
     return null;
 }
-// This is now an empty function...
-function parseCartIdFromGSAAdvantage(str) {
-    var reg = cart_id_from_GSA_Advantage;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseAtnFromGSAAdvantageOld(str) {
-    var reg = /\[Atn: (\S+@\S+\.\S+)\]/gm;
-    return parseCompleteEmail(str,reg);
-}
 
 function parseAtnFromGSAAdvantage(str) {
-    var areg = /\[Atn: (\S+)\]/gm;
-    var attn =  parseCompleteEmail(str,areg);
-    var ereg = /(\S+@\S+\.\S+)/gm;
-    var email =  parseCompleteEmail(attn,ereg);
+    var attn =  parseCompleteEmail(str,atn_from_gsa_advantage);
+    var email =  parseCompleteEmail(attn,email_from_gsa_advantage);
     return { "attn" : attn, "email" : email };
 }
 
-function parseFromEmail(str) {
-    var reg = /From: .* <(\S+@\S+\.\S+)>/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseGsaUsername(str) {
-    var reg = /To: (\S+) <communicart.sender@gmail.com>/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseDate(str) {
-    var reg = /Date: (.*)/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseAPPROVE(str) {
-    if (configs().MODE == "debug") {
-	console.log("Total Mail: "+str);
-    }
-    var reg = /^(APPROVE)$/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseREJECT(str) {
-    var reg = /^(REJECT)$/gm;
-    return parseCompleteEmail(str,reg);
-}
-// This is dangerous --- if this string changes (which is
-// produced the C2 project, so it can't be set up here,
-// then this will cause a problem.
-function parseApproveComment(str) {
-    var reg = /([\s\S]*?)^APPROVE/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseRejectComment(str) {
-    var reg = /([\s\S]*?)^REJECT/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseReplyComment(str) {
-    var reg = /([\s\S]*?)--------/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-// This is rather an ugly way of doing this...
-// all of these regexs could be made more efficient but
-// focusing on the proper parts, and not runing over the whole
-// email---improvement for the future.
-function parseInitiationComment(str) {
-    var reg = /\[Atn: \S+]([\s\S]*?)<BR><BR>/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseBodyFromEmail(str) {
-    var reg = /\[Atn: \S+]([\s\S]*?)/m;
-
-}
 function consolePrintJSON(analysis) {
     console.log(JSON.stringify(analysis,null,4));
 }
@@ -209,7 +152,7 @@ function analyzeCategory(mail_object) {
 	attentionParsed = parseAtnFromGSAAdvantage(mail_object.html);
 	analysis.approvalGroup = attentionParsed.attn;
 	analysis.email = attentionParsed.email;
-	analysis.initiationComment = parseInitiationComment(mail_object.html);
+	analysis.initiationComment = parseCompleteEmail(mail_object.html,init_comment_from_gsa);
 	console.log("cart initiation");
         consolePrintJSON(analysis);
 	return analysis;
@@ -222,10 +165,13 @@ function analyzeCategory(mail_object) {
 	    analysis.fromAddress = mail_object.from[0].address;
 	    analysis.gsaUsername = mail_object.to[0].name;
 	    analysis.date = mail_object.date;
-	    analysis.approve = parseAPPROVE(mail_object.text);
+	    analysis.approve = parseCompleteEmail(mail_object.text,approve_reg_exp);
 	    analysis.disapprove = parseREJECT(mail_object.text);
-	    analysis.comment = analysis.approve ? parseApproveComment(mail_object.text) : parseRejectComment(mail_object.text);
-	    analysis.humanResponseText = parseReplyComment(mail_object.text);
+	    analysis.disapprove = parseCompleteEmail(mail_object.text,reject_reg_exp);
+	    analysis.comment = analysis.approve ? 
+		parseCompleteEmail(mail_object.text,approve_comment_reg_exp) :
+		parseCompleteEmail(mail_object.text,reject_comment_reg_exp);
+	    analysis.humanResponseText = parseCompleteEmail(mail_object.text,reply_comment_reg_exp);
 	    console.log("approval request");
             consolePrintJSON(analysis);
 	    return analysis;
