@@ -4,8 +4,10 @@ var request = require('request');
 var Imap = require('imap'),
 inspect = require('util').inspect;
 
-var MailParser = require("mailparser").MailParser;
+var yaml = require('js-yaml');
+var fs   = require('fs');
 
+var MailParser = require("mailparser").MailParser;
 
 // mail sending stuff copied from mailsender.js...
 fs = require('fs');
@@ -13,7 +15,41 @@ var http = require('http');
 var nodemailer = require("nodemailer");
 var configs = require('./configs');
 
-var simulatedMapOfUserNameToEmail = configs().SIM_MAP_USER_EMAIL;
+
+// Get the C2 yml, or throw exception on error
+try {
+  var c2_doc = yaml.safeLoad(fs.readFileSync(configs().C2_APPLICATION_YML_PATH, 'utf8'));
+  var c2_rel_doc = c2_doc[process.env.NODE_ENV || "test"];
+} catch (e) {
+  console.log("Existing because couldn't find C2 yml file");
+  process.exit();
+}
+
+// Get the Mario yml, or throw exception on error
+try {
+  var mario_doc = yaml.safeLoad(fs.readFileSync(configs().GSA_ADVANTAGE_PATH, 'utf8'));
+  var mario_rel_doc = mario_doc["constants"];
+} catch (e) {
+  console.log("Existing because couldn't find mario yml file");
+  process.exit();
+}
+
+var approval_regexp = c2_rel_doc.email_title_for_approval_request_reg_exp;
+
+console.log(mario_rel_doc);
+
+var cart_id_from_GSA_Advantage = new RegExp(mario_rel_doc.cart_id_from_GSA_Advantage,"gm");
+var atn_from_gsa_advantage = new RegExp(mario_rel_doc.atn_from_gsa_advantage,"gm");
+var email_from_gsa_advantage = new RegExp(mario_rel_doc.email_from_gsa_advantage,"gm");
+var init_comment_from_gsa = new RegExp(mario_rel_doc.init_comment_from_gsa,"gm");
+
+var reject_reg_exp = new RegExp(c2_rel_doc.reject_reg_exp,"gm");
+var approve_reg_exp = new RegExp(c2_rel_doc.approve_reg_exp,"gm");
+var reject_comment_reg_exp = new RegExp(c2_rel_doc.reject_comment_reg_exp,"gm");
+var approve_comment_reg_exp = new RegExp(c2_rel_doc.approve_comment_reg_exp,"gm");
+var reply_comment_reg_exp = new RegExp(c2_rel_doc.reply_comment_reg_exp,"gm");
+
+var approval_identifier = new RegExp(approval_regexp);
 
 var DYNO_CART_SENDER = configs().DYNO_CART_SENDER;
 var SENDER_CREDENTIALS = configs().SENDER_CREDENTIALS;
@@ -32,34 +68,6 @@ var dynoCartXport = instantiateGmailTransport(
     DYNO_CART_SENDER,
     SENDER_CREDENTIALS
 );
-
-function sendFrDynoCart(dynoCartSender,from, recipients, subject, message) {
-    var fromString = from + ' <' + dynoCartSender +'>';
-    if (configs().MODE == "debug") {
-	console.log('from is "' + fromString + '"');
-	console.log('recipient is "' + recipients + '"');
-	console.log('subject is "' + subject + '"');
-	console.log('___________');
-    }
-
-    dynoCartXport.sendMail(
-        {
-            from: fromString,
-            to: recipients,
-            subject: subject,
-            text: "you need an html capable email client",
-            html: message
-        },
-        function(error, response){
-            console.log("MAIL RESULT =========");
-            if (error) {
-                console.log("Mail Error:"+error);
-            } else {
-                console.log("Message sent(from " + from + "): " +
-                            response.message);
-            }
-        });
-}
 
 // taken from StackOverflow: http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format
 if (!String.format) {
@@ -102,6 +110,10 @@ EmailAnalysis = function EmailAnalysis() {
 
 EmailAnalysis.prototype = new EmailAnalysis;
 
+// This is rather an ugly way of doing this...
+// all of these regexs could be made more efficient but
+// focusing on the proper parts, and not runing over the whole
+// email---improvement for the future.
 function parseCompleteEmail(str,reg) {
     var myArray = reg.exec(str);
     if (myArray) {
@@ -110,101 +122,22 @@ function parseCompleteEmail(str,reg) {
     return null;
 }
 
-function parseCartIdFromGSAAdvantage(str) {
-    var reg = /GSA Advantage! cart # (\d+)/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseAtnFromGSAAdvantageOld(str) {
-    var reg = /\[Atn: (\S+@\S+\.\S+)\]/gm;
-    return parseCompleteEmail(str,reg);
-}
-
 function parseAtnFromGSAAdvantage(str) {
-    var areg = /\[Atn: (\S+)\]/gm;
-    var attn =  parseCompleteEmail(str,areg);
-    var ereg = /(\S+@\S+\.\S+)/gm;
-    var email =  parseCompleteEmail(attn,ereg);
+    var attn =  parseCompleteEmail(str,atn_from_gsa_advantage);
+    var email =  parseCompleteEmail(attn,email_from_gsa_advantage);
     return { "attn" : attn, "email" : email };
 }
 
-function parseFromEmail(str) {
-    var reg = /From: .* <(\S+@\S+\.\S+)>/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseGsaUsername(str) {
-    var reg = /To: (\S+) <communicart.sender@gmail.com>/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseDate(str) {
-    var reg = /Date: (.*)/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseAPPROVE(str) {
-    if (configs().MODE == "debug") {
-	console.log("Total Mail: "+str);
-    }
-    var reg = /^(APPROVE)$/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseREJECT(str) {
-    var reg = /^(REJECT)$/gm;
-    return parseCompleteEmail(str,reg);
-}
-// This is dangerous --- if this string changes (which is
-// produced the C2 project, so it can't be set up here,
-// then this will cause a problem.
-function parseApproveComment(str) {
-    var reg = /([\s\S]*?)^APPROVE/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseRejectComment(str) {
-    var reg = /([\s\S]*?)^REJECT/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseReplyComment(str) {
-    var reg = /([\s\S]*?)--------/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-// This is rather an ugly way of doing this...
-// all of these regexs could be made more efficient but
-// focusing on the proper parts, and not runing over the whole
-// email---improvement for the future.
-function parseInitiationComment(str) {
-    var reg = /\[Atn: \S+]([\s\S]*?)<BR><BR>/gm;
-    return parseCompleteEmail(str,reg);
-}
-
-function parseBodyFromEmail(str) {
-    var reg = /\[Atn: \S+]([\s\S]*?)/m;
-
-}
 function consolePrintJSON(analysis) {
     console.log(JSON.stringify(analysis,null,4));
 }
-function consolePrint(analysis) {
-    console.log("analysis.category "+analysis.category);
-    console.log("analysis.attention "+analysis.attention);
-    console.log("analysis.cartNumber "+analysis.cartNumber);
-    console.log("analysis.fromAddress "+analysis.fromAddress);
-    console.log("analysis.gsaUsername "+analysis.gsaUsername);
-    console.log("analysis.date "+analysis.date);
-    console.log("analysis.approve "+analysis.approve);
-    console.log("analysis.disapprove "+analysis.disapprove);
-    console.log("analysis.cartItems "+analysis.cartItems);
-    console.log("analysis.cartName "+analysis.cartName);
-}
+
 function analyzeCategory(mail_object) {
     var analysis = new EmailAnalysis();
-    var reg = /GSA Advantage! cart # (\d+)/gm;
-    var initiationCartNumber = parseCompleteEmail(mail_object.subject,reg);
+// This string technically comes from Advantage, not C2---but perhaps
+// We should move it into application.yml anyway!
+//    var reg = /GSA Advantage! cart # (\d+)/gm;
+    var initiationCartNumber = parseCompleteEmail(mail_object.subject,cart_id_from_GSA_Advantage);
 
     console.log("html = "+mail_object.html);
     console.log("text = "+mail_object.text);
@@ -219,29 +152,30 @@ function analyzeCategory(mail_object) {
 	attentionParsed = parseAtnFromGSAAdvantage(mail_object.html);
 	analysis.approvalGroup = attentionParsed.attn;
 	analysis.email = attentionParsed.email;
-	analysis.initiationComment = parseInitiationComment(mail_object.html);
+	analysis.initiationComment = parseCompleteEmail(mail_object.html,init_comment_from_gsa);
 	console.log("cart initiation");
         consolePrintJSON(analysis);
 	return analysis;
     } else {
-  var reg = /^.*Communicart Approval Request from.*Please review Cart \#(\d+)/;
-	var approvalCartNumber = parseCompleteEmail(mail_object.subject,reg);
+	var approvalCartNumber = parseCompleteEmail(mail_object.subject,
+						    approval_identifier);
 	if (approvalCartNumber) {
 	    analysis.cartNumber = approvalCartNumber;
 	    analysis.category = "approvalreply";
 	    analysis.fromAddress = mail_object.from[0].address;
 	    analysis.gsaUsername = mail_object.to[0].name;
 	    analysis.date = mail_object.date;
-	    analysis.approve = parseAPPROVE(mail_object.text);
-	    analysis.disapprove = parseREJECT(mail_object.text);
-	    analysis.comment = analysis.approve ? parseApproveComment(mail_object.text) : parseRejectComment(mail_object.text);
-	    analysis.humanResponseText = parseReplyComment(mail_object.text);
+	    analysis.approve = parseCompleteEmail(mail_object.text,approve_reg_exp);
+	    analysis.disapprove = parseCompleteEmail(mail_object.text,reject_reg_exp);
+	    analysis.comment = analysis.approve ? 
+		parseCompleteEmail(mail_object.text,approve_comment_reg_exp) :
+		parseCompleteEmail(mail_object.text,reject_comment_reg_exp);
+	    analysis.humanResponseText = parseCompleteEmail(mail_object.text,reply_comment_reg_exp);
 	    console.log("approval request");
             consolePrintJSON(analysis);
 	    return analysis;
 	}
     }
-    console.log("FFFFFFFFFFF");
     return null;
 }
 
@@ -259,7 +193,6 @@ function executeInitiationMailDelivery(path,analysis) {
     function callback(error, response, body) {
         console.log("callback from Ruby:"+path);
         console.log("error:"+error);
-//        console.log("response:"+response.statusCode);
 
 	if (!error && response.statusCode == 200) {
 	    console.log(body);

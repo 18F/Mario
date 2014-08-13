@@ -10,8 +10,9 @@ module.exports = function(){
 	    'GSA_SCRAPE_URL' :'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
 	    'GSA_PASSWORD': process.env.GSA_PASSWORD,
 	    'GSA_USERNAME': process.env.GSA_USERNAME,
-	    'SIM_MAP_USER_EMAIL':{ "ROBERTLREAD" : "read.robert@gmail.com" },
+	    'SIM_MAP_USER_EMAIL':{ "SOMEUSER" : "example.user@some-dot-gov.gov" },
 	    'C2_SERVER_ENDPOINT': 'http://localhost:3000',
+	    'C2_APPLICATION_YML_PATH': '/remote/path/to/c2/config/application.yml',
 	    'LEAVE_EMAIL_IN_PLACE': false
 	};
     case 'development':
@@ -22,8 +23,9 @@ module.exports = function(){
 	    'GSA_SCRAPE_URL' :'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
 	    'GSA_PASSWORD': process.env.GSA_PASSWORD,
 	    'GSA_USERNAME': process.env.GSA_USERNAME,
-	    'SIM_MAP_USER_EMAIL':{ "ROBERTLREAD" : "read.robert@gmail.com" },
+	    'SIM_MAP_USER_EMAIL':{ "SOMEUSER" : "example.user@some-dot-gov.gov" },
 	    'C2_SERVER_ENDPOINT': 'http://localhost:3000',
+	    'C2_APPLICATION_YML_PATH': '/remote/path/to/c2/config/application.yml',
 	    'LEAVE_EMAIL_IN_PLACE': false
 	};
     default:
@@ -34,8 +36,9 @@ module.exports = function(){
 	    'GSA_SCRAPE_URL' :'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
 	    'GSA_PASSWORD': process.env.GSA_PASSWORD,
 	    'GSA_USERNAME': process.env.GSA_USERNAME,
-	    'SIM_MAP_USER_EMAIL':{ "ROBERTLREAD" : "read.robert@gmail.com" },
+	    'SIM_MAP_USER_EMAIL':{ "SOMEUSER" : "example.user@some-dot-gov.gov" },
 	    'C2_SERVER_ENDPOINT': 'http://localhost:3000',
+	    'C2_APPLICATION_YML_PATH': '/remote/path/to/c2/config/application.yml',
 	    'LEAVE_EMAIL_IN_PLACE': false
 	};
 
