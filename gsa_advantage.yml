@@ -1,5 +1,3 @@
-
-# config/application.yml
 constants:
   cart_id_from_GSA_Advantage: "GSA Advantage! cart # (\\d+)"
   atn_from_gsa_advantage: "\\[Atn: (\\S+)\\]"
