@@ -29,8 +29,6 @@ where they are read by Node.
 
 Your imap/reading email password needs to go in this variable:
 
-WEARE18F
-
 (Which obviously needs to change) 
 
 and your sending/nodemailer password needs to go in 

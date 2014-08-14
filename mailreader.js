@@ -19,7 +19,7 @@ var configs = require('./configs');
 // Get the C2 yml, or throw exception on error
 try {
   var c2_doc = yaml.safeLoad(fs.readFileSync(configs().C2_APPLICATION_YML_PATH, 'utf8'));
-  var c2_rel_doc = c2_doc[process.env.NODE_ENV || "test"];
+  var c2_rel_doc = c2_doc["constants"];
 } catch (e) {
   console.log("Existing because couldn't find C2 yml file");
   process.exit();
