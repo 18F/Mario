@@ -11,3 +11,7 @@ notifications:
       - robert.read@gsa.gov
       - alexander.magee@gsa.gov
       - anna.flowerhorne@gsa.gov
+branches:
+  only:
+    - master
+    - /^ci[-_].*$/
