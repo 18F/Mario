@@ -4,3 +4,10 @@ node_js:
 before_script:
     - "npm i -g jasmine-node"
     - cp configs.js.EXAMPLE configs.js
+notifications:
+  email:
+    recipients:
+      - raphael.villas@gsa.gov
+      - robert.read@gsa.gov
+      - alexander.magee@gsa.gov
+      - anna.flowerhorne@gsa.gov
