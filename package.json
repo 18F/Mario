@@ -12,6 +12,6 @@
     "js-yaml": ">= "1.2"
   },
   "scripts": {
-    "test": "jasmine-node spec/*Spec.js"
+    "test": "jasmine-node spec"
   }
 }
