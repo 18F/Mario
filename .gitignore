@@ -31,3 +31,5 @@ tramp
 
 configs.js
 node_modules/
+config/deploy/*.rb
+
