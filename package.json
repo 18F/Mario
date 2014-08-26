@@ -9,7 +9,7 @@
     "mailparser": ">= 0.4.x",
     "nodemailer": ">= 0.6.x",
     "jasmine-node": ">= 1.14.x",
-    "js-yaml": ">= "1.2"
+    "js-yaml": ">= 1.2"
   },
   "scripts": {
     "test": "jasmine-node spec/*Spec.js"
