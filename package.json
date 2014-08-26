@@ -2,7 +2,12 @@
   "name": "mario",
   "description": "Part of the C2 package for handling email",
   "version": "0.0.1",
-  "author": "Rob and Raphy and 18F",
+  "repository" :
+    {
+      "type" : "git",
+      "url" : "https://github.com/18F/Mario.git"
+    },
+  "author": "18F",
   "dependencies": {
     "request": ">= 2.x.x",
     "imap": ">= 0.8.x",
