@@ -9,6 +9,21 @@ documented hack and got it working.
 However, I doubt this code will work out-of-the-box for you unless you make the same hack
 after install nodemailer.
 
+Mario : What is this project?
+=====
+
+The basic purpose of Mario is to support the email processing of the
+Communicart (C2) diet.  We are using Mario as the Node.js-based mail
+reader.  It also invokes the gsa-advantage-scraper.
+
+We could have implemented this in the C2 rails application, and may
+still move that feature there.
+
+The basic execution of Mario is that you execute it once, which reads
+any unread mail.  We use a cron job to run it every minute.
+
+This architecture allow us to keep C2 independent of the GSA
+Advantage.
 
 INSTALLATION
 ============
@@ -19,37 +34,34 @@ npm install nodemailer
 npm install imap
 npm install request
 
-Possibly others.
+Then copy configs.js.EXAMPLE to configs.js and adjust the values
+there.
 
-Addtionally, at present this code hard-wires our own email addresses, which you will want 
-to find and replace.
+In particular, Mario is meant to be installed on the same server with
+C2, and the path to the shared constants flie in C2 should be set in
+C2_APPLICATION_YML_PATH.
 
-Furthermore, to avoid checking passwords into git, we place them in environment varialbes,
-where they are read by Node.
+Note that Mario needs 5 variable to be set into the environment where
+it runs:
 
-Your imap/reading email password needs to go in this variable:
+> NODE_ENV
+> GSA_PASSWORD
+> GSA_USERNAME
+> COMMUNICART_DOT_SENDER
+> DYNO_CART_SENDER
 
-(Which obviously needs to change) 
+NODE_ENV (this can be empty, 'debug' or 'development'
 
-and your sending/nodemailer password needs to go in 
+GSA_PASSWORD is the password used byt the scraper to pass to the
+GSA Advantage.
+GSA_USERNAME is the username for GSA Advantage for the scraper.
+COMMUNICART_DOT_SENDER is credentials to be passed to the email
+address you are reading, which can be publicly set into
+"DYNO_CART_SENDER".
 
-COMMUNICART_DOT_SENDER.
+This mechanism avoids the danger of setting a password in the repo and
+accidentally committing it.
 
 
-Mario : What is this project?
-=====
-
-This project is just beginning; we are felling our way.
-
-The basic idea here is to automate some of the processes that government peforms now.  This involves 
-researching items to buy to purchase things as cheaply as possible to save taxpayer money.  It also
-involves automating something that government procurement rules force, but sometimes happens to everyone:
-you want to buy something on behalf of someone else.  So you act as the buyer on behalf of someone else 
-who we will call the program manager.  This creates a need for communication, consensus, and approval.
-
-It occurs to us that someone could start a business around this concept.
-
-All of the code in this repo is in the public domain; you may freely use it for any purpose, commercial or otherwise,
-but it is released without warranty of any kind.  In fact it probably doesn't do anything useful---yet.
 
 
