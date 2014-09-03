@@ -62,6 +62,16 @@ address you are reading, which can be publicly set into
 This mechanism avoids the danger of setting a password in the repo and
 accidentally committing it.
 
+Althouh Mario can be used in a number of ways, we normally use a
+crontab job to run it once a minute.  The job actually impelments a
+shell scripts which ensures the environmental variables are correctly
+exported, and then Mario is invoked, piping the output to a log file.
+
+For debugging, you can of course invoke it by hand.  Additionally,
+there is a flag not to mark email as unread, which allows repetitive
+execution without a need to recreate the initiating emails.
+
+
 
 
 
