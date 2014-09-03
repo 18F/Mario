@@ -44,11 +44,13 @@ C2_APPLICATION_YML_PATH.
 Note that Mario needs 5 variable to be set into the environment where
 it runs:
 
-> NODE_ENV
-> GSA_PASSWORD
-> GSA_USERNAME
-> COMMUNICART_DOT_SENDER
-> DYNO_CART_SENDER
+```
+NODE_ENV
+GSA_PASSWORD
+GSA_USERNAME
+COMMUNICART_DOT_SENDER
+DYNO_CART_SENDER
+```
 
 NODE_ENV (this can be empty, 'debug' or 'development'
 
