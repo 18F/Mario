@@ -1,7 +1,13 @@
 {
   "name": "mario",
   "description": "Part of the C2 package for handling email",
-  "author": "Rob and Raphy and 18F",
+  "version": "0.0.1",
+  "repository" :
+    {
+      "type" : "git",
+      "url" : "https://github.com/18F/Mario.git"
+    },
+  "author": "18F",
   "dependencies": {
     "request": ">= 2.x.x",
     "imap": ">= 0.8.x",
@@ -9,7 +15,7 @@
     "mailparser": ">= 0.4.x",
     "nodemailer": ">= 0.6.x",
     "jasmine-node": ">= 1.14.x",
-    "js-yaml": ">= "1.2"
+    "js-yaml": ">= 1.2"
   },
   "scripts": {
     "test": "jasmine-node spec/*Spec.js"
