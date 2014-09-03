@@ -30,9 +30,11 @@ INSTALLATION
 
 This is currently a node project.  You should install the following packages:
 
+```
 npm install nodemailer
 npm install imap
 npm install request
+```
 
 Then copy configs.js.EXAMPLE to configs.js and adjust the values
 there.
