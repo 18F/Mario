@@ -41,9 +41,11 @@ Mario needs these variable to be set into the environment where
 it runs:
 
 ```bash
-NODE_ENV # this can be empty, 'debug' or 'development'
-GSA_PASSWORD # password used by the scraper to pass to GSA Advantage
+NODE_ENV # (optional) can be set to 'debug' or 'development'
+
 GSA_USERNAME # username for GSA Advantage for the scraper
+GSA_PASSWORD # password used by the scraper to pass to GSA Advantage
+
 COMMUNICART_DOT_SENDER # credentials to be passed to the email address you are reading, which can be publicly set into DYNO_CART_SENDER
 DYNO_CART_SENDER
 ```
@@ -51,8 +53,8 @@ DYNO_CART_SENDER
 This mechanism avoids the danger of setting a password in the repo and
 accidentally committing it.
 
-Althouh Mario can be used in a number of ways, we normally use a
-crontab job to run it once a minute.  The job actually impelments a
+Although Mario can be used in a number of ways, we normally use a
+crontab job to run it once a minute.  The job actually implements a
 shell scripts which ensures the environmental variables are correctly
 exported, and then Mario is invoked, piping the output to a log file.
 
