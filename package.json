@@ -1,13 +1,11 @@
 {
   "name": "mario",
+  "private": true,
   "description": "Part of the C2 package for handling email",
-  "version": "0.0.1",
-  "repository" :
-    {
-      "type" : "git",
-      "url" : "https://github.com/18F/Mario.git"
-    },
-  "author": "18F",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/18F/Mario.git"
+  },
   "dependencies": {
     "request": ">= 2.x.x",
     "imap": ">= 0.8.x",
