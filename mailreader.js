@@ -27,7 +27,8 @@ try {
 
 // Get the Mario yml, or throw exception on error
 try {
-  var mario_doc = yaml.safeLoad(fs.readFileSync(configs().GSA_ADVANTAGE_PATH, 'utf8'));
+  var GSA_ADVANTAGE_PATH = configs().GSA_ADVANTAGE_PATH || 'gsa_advantage.yml';
+  var mario_doc = yaml.safeLoad(fs.readFileSync(GSA_ADVANTAGE_PATH, 'utf8'));
   var mario_rel_doc = mario_doc["constants"];
 } catch (e) {
   console.log("Existing because couldn't find mario yml file");
@@ -167,7 +168,7 @@ function analyzeCategory(mail_object) {
 	    analysis.date = mail_object.date;
 	    analysis.approve = parseCompleteEmail(mail_object.text,approve_reg_exp);
 	    analysis.disapprove = parseCompleteEmail(mail_object.text,reject_reg_exp);
-	    analysis.comment = analysis.approve ? 
+	    analysis.comment = analysis.approve ?
 		parseCompleteEmail(mail_object.text,approve_comment_reg_exp) :
 		parseCompleteEmail(mail_object.text,reject_comment_reg_exp);
 	    analysis.humanResponseText = parseCompleteEmail(mail_object.text,reply_comment_reg_exp);
