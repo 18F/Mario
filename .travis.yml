@@ -2,7 +2,6 @@ language: node_js
 node_js:
     - "0.10.28"
 before_script:
-    - "npm i -g jasmine-node"
     - cp configs.js.EXAMPLE configs.js
 notifications:
   email:
@@ -11,7 +10,3 @@ notifications:
       - robert.read@gsa.gov
       - alexander.magee@gsa.gov
       - anna.flowerhorne@gsa.gov
-branches:
-  only:
-    - master
-    - /^ci[-_].*$/

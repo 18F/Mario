@@ -28,7 +28,7 @@ Advantage.
 INSTALLATION
 ============
 
-1. Install Node.js
+1. Install Node.js 0.10
 1. Run `npm install`.
 1. Copy [`configs.js.EXAMPLE`](configs.js.EXAMPLE) to `configs.js` and adjust the values
 there.
