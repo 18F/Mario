@@ -46,8 +46,8 @@ NODE_ENV # (optional) can be set to 'debug' or 'development'
 GSA_USERNAME # username for GSA Advantage for the scraper
 GSA_PASSWORD # password used by the scraper to pass to GSA Advantage
 
-COMMUNICART_DOT_SENDER # credentials to be passed to the email address you are reading, which can be publicly set into DYNO_CART_SENDER
-DYNO_CART_SENDER
+DYNO_CART_SENDER # email address to read from
+COMMUNICART_DOT_SENDER # password for the DYNO_CART_SENDER email
 ```
 
 This mechanism avoids the danger of setting a password in the repo and
