@@ -1,51 +1,14 @@
-// Returns a function that we can read Environment variables,
-// where we put things we never want to check into github.
-module.exports = function() {
-  switch (process.env.NODE_ENV) {
-    case 'debug':
-      return {
-        'MODE': process.env.NODE_ENV,
-        'DYNO_CART_SENDER': 'communicart.test@gmail.com',
-        'SENDER_CREDENTIALS': process.env.COMMUNICART_DOT_SENDER,
-        'GSA_SCRAPE_URL': 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
-        'GSA_PASSWORD': process.env.GSA_PASSWORD,
-        'GSA_USERNAME': process.env.GSA_USERNAME,
-        'SIM_MAP_USER_EMAIL': {
-          "SOMEUSER": "example.user@some-dot-gov.gov"
-        },
-        'C2_SERVER_ENDPOINT': 'http://localhost:3000',
-        'C2_APPLICATION_YML_PATH': '/remote/path/to/c2/config/application.yml',
-        'LEAVE_EMAIL_IN_PLACE': false
-      };
-    case 'development':
-      return {
-        'MODE': process.env.NODE_ENV,
-        'DYNO_CART_SENDER': 'communicart.test@gmail.com',
-        'SENDER_CREDENTIALS': process.env.COMMUNICART_DOT_SENDER,
-        'GSA_SCRAPE_URL': 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
-        'GSA_PASSWORD': process.env.GSA_PASSWORD,
-        'GSA_USERNAME': process.env.GSA_USERNAME,
-        'SIM_MAP_USER_EMAIL': {
-          "SOMEUSER": "example.user@some-dot-gov.gov"
-        },
-        'C2_SERVER_ENDPOINT': 'http://localhost:3000',
-        'C2_APPLICATION_YML_PATH': '/remote/path/to/c2/config/application.yml',
-        'LEAVE_EMAIL_IN_PLACE': false
-      };
-    default:
-      return {
-        'MODE': process.env.NODE_ENV,
-        'DYNO_CART_SENDER': 'communicart.test@gmail.com',
-        'SENDER_CREDENTIALS': process.env.COMMUNICART_DOT_SENDER,
-        'GSA_SCRAPE_URL': 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
-        'GSA_PASSWORD': process.env.GSA_PASSWORD,
-        'GSA_USERNAME': process.env.GSA_USERNAME,
-        'SIM_MAP_USER_EMAIL': {
-          "SOMEUSER": "example.user@some-dot-gov.gov"
-        },
-        'C2_SERVER_ENDPOINT': 'http://localhost:3000',
-        'C2_APPLICATION_YML_PATH': '/remote/path/to/c2/config/application.yml',
-        'LEAVE_EMAIL_IN_PLACE': false
-      };
-  }
+module.exports = {
+  MODE: process.env.NODE_ENV,
+  DYNO_CART_SENDER: 'communicart.test@gmail.com',
+  SENDER_CREDENTIALS: process.env.COMMUNICART_DOT_SENDER,
+  GSA_SCRAPE_URL: 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
+  GSA_PASSWORD: process.env.GSA_PASSWORD,
+  GSA_USERNAME: process.env.GSA_USERNAME,
+  SIM_MAP_USER_EMAIL: {
+    SOMEUSER: "example.user@some-dot-gov.gov"
+  },
+  C2_SERVER_ENDPOINT: 'http://localhost:3000',
+  C2_APPLICATION_YML_PATH: '/remote/path/to/c2/config/application.yml',
+  LEAVE_EMAIL_IN_PLACE: false
 };
