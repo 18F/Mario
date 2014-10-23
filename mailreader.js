@@ -2,7 +2,7 @@
 var http = require('http');
 var request = require('request');
 var Imap = require('imap'),
-inspect = require('util').inspect;
+  inspect = require('util').inspect;
 
 var yaml = require('js-yaml');
 var fs   = require('fs');
@@ -39,16 +39,16 @@ var approval_regexp = c2_rel_doc.email_title_for_approval_request_reg_exp;
 
 console.log(mario_rel_doc);
 
-var cart_id_from_GSA_Advantage = new RegExp(mario_rel_doc.cart_id_from_GSA_Advantage,"gm");
-var atn_from_gsa_advantage = new RegExp(mario_rel_doc.atn_from_gsa_advantage,"gm");
-var email_from_gsa_advantage = new RegExp(mario_rel_doc.email_from_gsa_advantage,"gm");
-var init_comment_from_gsa = new RegExp(mario_rel_doc.init_comment_from_gsa,"gm");
+var cart_id_from_GSA_Advantage = new RegExp(mario_rel_doc.cart_id_from_GSA_Advantage, "gm");
+var atn_from_gsa_advantage = new RegExp(mario_rel_doc.atn_from_gsa_advantage, "gm");
+var email_from_gsa_advantage = new RegExp(mario_rel_doc.email_from_gsa_advantage, "gm");
+var init_comment_from_gsa = new RegExp(mario_rel_doc.init_comment_from_gsa, "gm");
 
-var reject_reg_exp = new RegExp(c2_rel_doc.reject_reg_exp,"gm");
-var approve_reg_exp = new RegExp(c2_rel_doc.approve_reg_exp,"gm");
-var reject_comment_reg_exp = new RegExp(c2_rel_doc.reject_comment_reg_exp,"gm");
-var approve_comment_reg_exp = new RegExp(c2_rel_doc.approve_comment_reg_exp,"gm");
-var reply_comment_reg_exp = new RegExp(c2_rel_doc.reply_comment_reg_exp,"gm");
+var reject_reg_exp = new RegExp(c2_rel_doc.reject_reg_exp, "gm");
+var approve_reg_exp = new RegExp(c2_rel_doc.approve_reg_exp, "gm");
+var reject_comment_reg_exp = new RegExp(c2_rel_doc.reject_comment_reg_exp, "gm");
+var approve_comment_reg_exp = new RegExp(c2_rel_doc.approve_comment_reg_exp, "gm");
+var reply_comment_reg_exp = new RegExp(c2_rel_doc.reply_comment_reg_exp, "gm");
 
 var approval_identifier = new RegExp(approval_regexp);
 
@@ -56,7 +56,7 @@ var DYNO_CART_SENDER = configs().DYNO_CART_SENDER;
 var COMMUNICART_DOT_SENDER = configs().COMMUNICART_DOT_SENDER;
 
 function instantiateGmailTransport(username, password) {
-    return nodemailer.createTransport("SMTP",{
+  return nodemailer.createTransport("SMTP", {
         service: "Gmail",
         auth: {
             user: username,
@@ -75,10 +75,7 @@ if (!String.format) {
     String.format = function(format) {
 	var args = Array.prototype.slice.call(arguments, 1);
 	return format.replace(/{(\d+)}/g, function(match, number) {
-	    return typeof args[number] != 'undefined'
-		? args[number]
-		: match
-	    ;
+      return typeof args[number] != 'undefined' ? args[number] : match;
 	});
     };
 }
@@ -92,8 +89,8 @@ var imap = new Imap({
 });
 
 function openInbox(cb) {
-// But "true" here if you want to leave the emails you are reading in place...
-// probably this should be a command-line argument for debugging purposes.
+  // But "true" here if you want to leave the emails you are reading in place...
+  // probably this should be a command-line argument for debugging purposes.
     imap.openBox('INBOX', configs().LEAVE_EMAIL_IN_PLACE, cb);
 }
 
@@ -115,7 +112,7 @@ EmailAnalysis.prototype = new EmailAnalysis;
 // all of these regexs could be made more efficient but
 // focusing on the proper parts, and not runing over the whole
 // email---improvement for the future.
-function parseCompleteEmail(str,reg) {
+function parseCompleteEmail(str, reg) {
     var myArray = reg.exec(str);
     if (myArray) {
 	return myArray[1];
@@ -124,36 +121,39 @@ function parseCompleteEmail(str,reg) {
 }
 
 function parseAtnFromGSAAdvantage(str) {
-    var attn =  parseCompleteEmail(str,atn_from_gsa_advantage);
-    var email =  parseCompleteEmail(attn,email_from_gsa_advantage);
-    return { "attn" : attn, "email" : email };
+  var attn = parseCompleteEmail(str, atn_from_gsa_advantage);
+  var email = parseCompleteEmail(attn, email_from_gsa_advantage);
+  return {
+    "attn": attn,
+    "email": email
+  };
 }
 
 function consolePrintJSON(analysis) {
-    console.log(JSON.stringify(analysis,null,4));
+  console.log(JSON.stringify(analysis, null, 4));
 }
 
 function analyzeCategory(mail_object) {
     var analysis = new EmailAnalysis();
-// This string technically comes from Advantage, not C2---but perhaps
-// We should move it into application.yml anyway!
-//    var reg = /GSA Advantage! cart # (\d+)/gm;
-    var initiationCartNumber = parseCompleteEmail(mail_object.subject,cart_id_from_GSA_Advantage);
+  // This string technically comes from Advantage, not C2---but perhaps
+  // We should move it into application.yml anyway!
+  //    var reg = /GSA Advantage! cart # (\d+)/gm;
+  var initiationCartNumber = parseCompleteEmail(mail_object.subject, cart_id_from_GSA_Advantage);
 
-    console.log("html = "+mail_object.html);
-    console.log("text = "+mail_object.text);
-    console.log("subject = "+mail_object.subject);
-    console.log("cartNumber = "+initiationCartNumber);
+  console.log("html = " + mail_object.html);
+  console.log("text = " + mail_object.text);
+  console.log("subject = " + mail_object.subject);
+  console.log("cartNumber = " + initiationCartNumber);
     if (initiationCartNumber) {
 	if (configs().MODE == "debug") {
-	    console.log("Total initiation email = "+str);
+      console.log("Total initiation email = " + str);
 	}
 	analysis.category = "initiation";
 	analysis.cartNumber = initiationCartNumber;
 	attentionParsed = parseAtnFromGSAAdvantage(mail_object.html);
 	analysis.approvalGroup = attentionParsed.attn;
 	analysis.email = attentionParsed.email;
-	analysis.initiationComment = parseCompleteEmail(mail_object.html,init_comment_from_gsa);
+    analysis.initiationComment = parseCompleteEmail(mail_object.html, init_comment_from_gsa);
 	console.log("cart initiation");
         consolePrintJSON(analysis);
 	return analysis;
@@ -166,12 +166,12 @@ function analyzeCategory(mail_object) {
 	    analysis.fromAddress = mail_object.from[0].address;
 	    analysis.gsaUsername = mail_object.to[0].name;
 	    analysis.date = mail_object.date;
-	    analysis.approve = parseCompleteEmail(mail_object.text,approve_reg_exp);
-	    analysis.disapprove = parseCompleteEmail(mail_object.text,reject_reg_exp);
+      analysis.approve = parseCompleteEmail(mail_object.text, approve_reg_exp);
+      analysis.disapprove = parseCompleteEmail(mail_object.text, reject_reg_exp);
 	    analysis.comment = analysis.approve ?
-		parseCompleteEmail(mail_object.text,approve_comment_reg_exp) :
-		parseCompleteEmail(mail_object.text,reject_comment_reg_exp);
-	    analysis.humanResponseText = parseCompleteEmail(mail_object.text,reply_comment_reg_exp);
+        parseCompleteEmail(mail_object.text, approve_comment_reg_exp) :
+        parseCompleteEmail(mail_object.text, reject_comment_reg_exp);
+      analysis.humanResponseText = parseCompleteEmail(mail_object.text, reply_comment_reg_exp);
 	    console.log("approval request");
             consolePrintJSON(analysis);
 	    return analysis;
@@ -180,7 +180,7 @@ function analyzeCategory(mail_object) {
     return null;
 }
 
-function executeInitiationMailDelivery(path,analysis) {
+function executeInitiationMailDelivery(path, analysis) {
     var options = {
 	uri: configs().C2_SERVER_ENDPOINT + path, //TODO: Configuration file for this
 	method: 'POST',
@@ -188,20 +188,20 @@ function executeInitiationMailDelivery(path,analysis) {
 	path: ""
     };
 
-// Really we don't have anything to do, though
-// I suppose in a perfect world we wouldn't mark
-// the email as seen until this succeeds..
+  // Really we don't have anything to do, though
+  // I suppose in a perfect world we wouldn't mark
+  // the email as seen until this succeeds..
     function callback(error, response, body) {
-        console.log("callback from Ruby:"+path);
-        console.log("error:"+error);
+    console.log("callback from Ruby:" + path);
+    console.log("error:" + error);
 
 	if (!error && response.statusCode == 200) {
 	    console.log(body);
 	}
     }
-    console.log("making request to Ruby:"+path);
+  console.log("making request to Ruby:" + path);
     console.log("Data is:");
-    console.log(JSON.stringify(analysis,null,4));
+  console.log(JSON.stringify(analysis, null, 4));
     request(options, callback);
 }
 
@@ -209,9 +209,11 @@ function generalizeScraperTraits(cartItems) {
     var len = cartItems.length;
     for (var i = 0; i < len; i++) {
 	var citem = cartItems[i];
-	citem.traits = { "socio" : citem.socio,
-			 "features" : citem.features,
-                         "green" : citem.green };
+    citem.traits = {
+      "socio": citem.socio,
+      "features": citem.features,
+      "green": citem.green
+    };
 	delete citem["socio"];
 	delete citem["features"];
 	delete citem["green"];
@@ -225,13 +227,13 @@ function processInitiation(analysis) {
 	var options = {
 	    url: configs().GSA_SCRAPE_URL +
 		String.format('?p={0}&u={1}&cart_id={2}',
-			      encodeURIComponent(configs().GSA_PASSWORD),encodeURIComponent(configs().GSA_USERNAME),analysis.cartNumber)
+          encodeURIComponent(configs().GSA_PASSWORD), encodeURIComponent(configs().GSA_USERNAME), analysis.cartNumber)
 	};
 
 	function callback(error, response, body) {
 	    console.log("Back from Scraper");
-// Here I'm going to pack socio, green, and features, which
-// are known to the GSA SCRAPER into a single "JSON" object.
+      // Here I'm going to pack socio, green, and features, which
+      // are known to the GSA SCRAPER into a single "JSON" object.
 	    if (!error && response.statusCode == 200) {
 		console.log(body);
 		var info = JSON.parse(body);
@@ -239,11 +241,11 @@ function processInitiation(analysis) {
 		analysis.cartItems = generalizeScraperTraits(data['cartItems']);
 		analysis.cartName = data['cartName'];
 
-		console.log(JSON.stringify(analysis,null,4));
-		executeInitiationMailDelivery('/send_cart',analysis);
+        console.log(JSON.stringify(analysis, null, 4));
+        executeInitiationMailDelivery('/send_cart', analysis);
 	    } else {
-		console.log("error = "+error);
-		console.log("statusCode = "+response.statusCode);
+        console.log("error = " + error);
+        console.log("statusCode = " + response.statusCode);
 		}
 	}
 	request(options, callback);
@@ -251,7 +253,7 @@ function processInitiation(analysis) {
 }
 
 function processApprovalReply(analysis) {
-    executeInitiationMailDelivery('/approval_reply_received',analysis);
+  executeInitiationMailDelivery('/approval_reply_received', analysis);
 }
 var GLOBAL_MESSAGES = [];
 
@@ -259,24 +261,28 @@ imap.once('ready', function() {
 
     openInbox(function(err, box) {
 	if (err) {
-	    console.log("Yes, I got an err param: "+err);
+      console.log("Yes, I got an err param: " + err);
 	    throw err;
 	}
-	imap.search([ 'UNSEEN' ], function(err, results) {
+    imap.search(['UNSEEN'], function(err, results) {
 	    if (err) throw err;
 	    if (results == null || results.length == 0) {
 		console.log("Nothing to fetch!");
 		console.log(err);
 		// It's okay to kill here because presumably we have nothing to do..
-		process.exit(code=0);
+        process.exit(code = 0);
        	    }
-	    console.log("results.length = "+results.length);
-	    var f = imap.fetch(results, { bodies: '', markSeen: true });
+      console.log("results.length = " + results.length);
+      var f = imap.fetch(results, {
+        bodies: '',
+        markSeen: true
+      });
 	    f.on('message', function(msg, seqno) {
 		console.log('Message #%d', seqno);
 		var prefix = '(#' + seqno + ') ';
 		msg.on('body', function(stream, info) {
-		    var buffer = '', count = 0;
+          var buffer = '',
+            count = 0;
 		    stream.on('data', function(chunk) {
 			buffer += chunk.toString('utf8');
 		    });
@@ -287,14 +293,13 @@ imap.once('ready', function() {
 			// move even further out
 			GLOBAL_MESSAGES.push(buffer);
 			console.log("QQQQQQQQQ");
-			console.log("Just pushed :"+buffer);
+            console.log("Just pushed :" + buffer);
 		    });
 
 		    msg.once('attributes', function(attrs) {
-			console.log(prefix + 'Attributes: %s', inspect(attrs,false, 8));
+            console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
 		    });
-		    msg.once('end', function() {
-		    });
+          msg.once('end', function() {});
 		});
 	    });
 	    f.once('error', function(err) {
@@ -304,11 +309,11 @@ imap.once('ready', function() {
 		console.log('Done fetching all messages!');
 		imap.end();
 		arrayLength = GLOBAL_MESSAGES.length;
-		for (var i = 0; i < arrayLength; i++ ) {
+        for (var i = 0; i < arrayLength; i++) {
 		    mailparser = new MailParser();
 
 		    // setup an event listener when the parsing finishes
-		    mailparser.on("end", function(mail_object){
+          mailparser.on("end", function(mail_object) {
 			    var analysis = analyzeCategory(mail_object);
 			    if (!analysis) {
 				console.log('Cannot categorize, doing nothing!');
@@ -317,7 +322,7 @@ imap.once('ready', function() {
 			    } else if (analysis.category == "approvalreply") {
 				processApprovalReply(analysis);
 			    } else {
-				console.log('Unimplemented Category:'+analysis.category);
+              console.log('Unimplemented Category:' + analysis.category);
 			    };
 
 			});
