@@ -9,6 +9,6 @@ module.exports = {
     SOMEUSER: "example.user@some-dot-gov.gov"
   },
   C2_SERVER_ENDPOINT: 'http://localhost:3000',
-  C2_APPLICATION_YML_PATH: '/remote/path/to/c2/config/application.yml',
+  C2_APPLICATION_YML_PATH: '../c2/config/c2_mario_constants.yml',
   LEAVE_EMAIL_IN_PLACE: false
 };
