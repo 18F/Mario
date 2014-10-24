@@ -224,9 +224,9 @@ function processInitiation(analysis) {
   if (analysis.cartNumber) {
     console.log("inside process Initiation");
     var options = {
-      url: configs().GSA_SCRAPE_URL +
-        String.format('?p={0}&u={1}&cart_id={2}',
-          encodeURIComponent(configs().GSA_PASSWORD), encodeURIComponent(configs().GSA_USERNAME), analysis.cartNumber)
+      url: configs().GSA_SCRAPE_URL + '/api/v1/carts/' + analysis.cartNumber +
+        String.format('?p={0}&u={1}',
+          encodeURIComponent(configs().GSA_PASSWORD), encodeURIComponent(configs().GSA_USERNAME))
     };
 
     function callback(error, response, body) {
