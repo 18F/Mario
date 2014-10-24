@@ -53,7 +53,7 @@ var reply_comment_reg_exp = new RegExp(c2_rel_doc.reply_comment_reg_exp, "gm");
 var approval_identifier = new RegExp(approval_regexp);
 
 var DYNO_CART_SENDER = configs.DYNO_CART_SENDER;
-var SENDER_CREDENTIALS = configs.SENDER_CREDENTIALS;
+var COMMUNICART_DOT_SENDER = configs.COMMUNICART_DOT_SENDER;
 
 function instantiateGmailTransport(username, password) {
   return nodemailer.createTransport("SMTP", {
@@ -67,12 +67,12 @@ function instantiateGmailTransport(username, password) {
 
 var dynoCartXport = instantiateGmailTransport(
   DYNO_CART_SENDER,
-  SENDER_CREDENTIALS
+  COMMUNICART_DOT_SENDER
 );
 
 var imap = new Imap({
   user: DYNO_CART_SENDER,
-  password: SENDER_CREDENTIALS,
+  password: COMMUNICART_DOT_SENDER,
   host: 'imap.gmail.com',
   port: 993,
   tls: true
