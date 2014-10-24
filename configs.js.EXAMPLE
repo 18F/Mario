@@ -10,5 +10,6 @@ module.exports = {
   },
   C2_SERVER_ENDPOINT: 'http://localhost:3000',
   C2_APPLICATION_YML_PATH: '../c2/config/c2_mario_constants.yml',
-  LEAVE_EMAIL_IN_PLACE: false
+  LEAVE_EMAIL_IN_PLACE: false,
+  GSA_ADVANTAGE_PATH: 'gsa_advantage.yml'
 };

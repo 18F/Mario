@@ -28,8 +28,7 @@ try {
 
 // Get the Mario yml, or throw exception on error
 try {
-  var GSA_ADVANTAGE_PATH = configs.GSA_ADVANTAGE_PATH || 'gsa_advantage.yml';
-  var mario_doc = yaml.safeLoad(fs.readFileSync(GSA_ADVANTAGE_PATH, 'utf8'));
+  var mario_doc = yaml.safeLoad(fs.readFileSync(configs.GSA_ADVANTAGE_PATH, 'utf8'));
   var mario_rel_doc = mario_doc["constants"];
 } catch (e) {
   console.log("Existing because couldn't find mario yml file");
