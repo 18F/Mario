@@ -1,8 +1,9 @@
 // Now need to add the
 var http = require('http');
 var request = require('request');
-var Imap = require('imap'),
-  inspect = require('util').inspect;
+var querystring = require('querystring');
+var Imap = require('imap');
+var inspect = require('util').inspect;
 
 var yaml = require('js-yaml');
 var fs = require('fs');
@@ -18,7 +19,7 @@ var configs = require('./configs');
 
 // Get the C2 yml, or throw exception on error
 try {
-  var c2_doc = yaml.safeLoad(fs.readFileSync(configs().C2_APPLICATION_YML_PATH, 'utf8'));
+  var c2_doc = yaml.safeLoad(fs.readFileSync(configs.C2_APPLICATION_YML_PATH, 'utf8'));
   var c2_rel_doc = c2_doc["constants"];
 } catch (e) {
   console.log("Existing because couldn't find C2 yml file");
@@ -27,7 +28,7 @@ try {
 
 // Get the Mario yml, or throw exception on error
 try {
-  var GSA_ADVANTAGE_PATH = configs().GSA_ADVANTAGE_PATH || 'gsa_advantage.yml';
+  var GSA_ADVANTAGE_PATH = configs.GSA_ADVANTAGE_PATH || 'gsa_advantage.yml';
   var mario_doc = yaml.safeLoad(fs.readFileSync(GSA_ADVANTAGE_PATH, 'utf8'));
   var mario_rel_doc = mario_doc["constants"];
 } catch (e) {
@@ -52,8 +53,8 @@ var reply_comment_reg_exp = new RegExp(c2_rel_doc.reply_comment_reg_exp, "gm");
 
 var approval_identifier = new RegExp(approval_regexp);
 
-var DYNO_CART_SENDER = configs().DYNO_CART_SENDER;
-var COMMUNICART_DOT_SENDER = configs().COMMUNICART_DOT_SENDER;
+var DYNO_CART_SENDER = configs.DYNO_CART_SENDER;
+var COMMUNICART_DOT_SENDER = configs.COMMUNICART_DOT_SENDER;
 
 function instantiateGmailTransport(username, password) {
   return nodemailer.createTransport("SMTP", {
@@ -70,16 +71,6 @@ var dynoCartXport = instantiateGmailTransport(
   COMMUNICART_DOT_SENDER
 );
 
-// taken from StackOverflow: http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format
-if (!String.format) {
-  String.format = function(format) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    return format.replace(/{(\d+)}/g, function(match, number) {
-      return typeof args[number] != 'undefined' ? args[number] : match;
-    });
-  };
-}
-
 var imap = new Imap({
   user: DYNO_CART_SENDER,
   password: COMMUNICART_DOT_SENDER,
@@ -91,7 +82,7 @@ var imap = new Imap({
 function openInbox(cb) {
   // But "true" here if you want to leave the emails you are reading in place...
   // probably this should be a command-line argument for debugging purposes.
-  imap.openBox('INBOX', configs().LEAVE_EMAIL_IN_PLACE, cb);
+  imap.openBox('INBOX', configs.LEAVE_EMAIL_IN_PLACE, cb);
 }
 
 // Currently these are operating on the COMPLETE
@@ -145,7 +136,7 @@ function analyzeCategory(mail_object) {
   console.log("subject = " + mail_object.subject);
   console.log("cartNumber = " + initiationCartNumber);
   if (initiationCartNumber) {
-    if (configs().MODE == "debug") {
+    if (configs.MODE == "debug") {
       console.log("Total initiation email = " + str);
     }
     analysis.category = "initiation";
@@ -182,7 +173,7 @@ function analyzeCategory(mail_object) {
 
 function executeInitiationMailDelivery(path, analysis) {
   var options = {
-    uri: configs().C2_SERVER_ENDPOINT + path, //TODO: Configuration file for this
+    uri: configs.C2_SERVER_ENDPOINT + path, //TODO: Configuration file for this
     method: 'POST',
     json: analysis,
     path: ""
@@ -224,10 +215,12 @@ function generalizeScraperTraits(cartItems) {
 function processInitiation(analysis) {
   if (analysis.cartNumber) {
     console.log("inside process Initiation");
+    var params = querystring.stringify({
+      u: configs().GSA_USERNAME,
+      p: configs().GSA_PASSWORD
+    });
     var options = {
-      url: configs().GSA_SCRAPE_URL +
-        String.format('?p={0}&u={1}&cart_id={2}',
-          encodeURIComponent(configs().GSA_PASSWORD), encodeURIComponent(configs().GSA_USERNAME), analysis.cartNumber)
+      url: configs.GSA_SCRAPE_URL + '/api/v1/carts/' + analysis.cartNumber + '?' + params
     };
 
     function callback(error, response, body) {
