@@ -1,8 +1,9 @@
 // Now need to add the
 var http = require('http');
 var request = require('request');
-var Imap = require('imap'),
-  inspect = require('util').inspect;
+var querystring = require('querystring');
+var Imap = require('imap');
+var inspect = require('util').inspect;
 
 var yaml = require('js-yaml');
 var fs = require('fs');
@@ -68,16 +69,6 @@ var dynoCartXport = instantiateGmailTransport(
   DYNO_CART_SENDER,
   SENDER_CREDENTIALS
 );
-
-// taken from StackOverflow: http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format
-if (!String.format) {
-  String.format = function(format) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    return format.replace(/{(\d+)}/g, function(match, number) {
-      return typeof args[number] != 'undefined' ? args[number] : match;
-    });
-  };
-}
 
 var imap = new Imap({
   user: DYNO_CART_SENDER,
@@ -223,10 +214,12 @@ function generalizeScraperTraits(cartItems) {
 function processInitiation(analysis) {
   if (analysis.cartNumber) {
     console.log("inside process Initiation");
+    var params = querystring.stringify({
+      u: configs().GSA_USERNAME,
+      p: configs().GSA_PASSWORD
+    });
     var options = {
-      url: configs().GSA_SCRAPE_URL +
-        String.format('?p={0}&u={1}&cart_id={2}',
-          encodeURIComponent(configs().GSA_PASSWORD), encodeURIComponent(configs().GSA_USERNAME), analysis.cartNumber)
+      url: configs().GSA_SCRAPE_URL + '/api/v1/carts/' + analysis.cartNumber + '?' + params
     };
 
     function callback(error, response, body) {
