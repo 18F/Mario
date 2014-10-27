@@ -1,7 +1,7 @@
 // Now need to add the
 var http = require('http');
 var request = require('request');
-var querystring = require('querystring');
+var scraper = require('./lib/scraper');
 var Imap = require('imap');
 var inspect = require('util').inspect;
 
@@ -195,52 +195,18 @@ function executeInitiationMailDelivery(path, analysis) {
   request(options, callback);
 }
 
-function generalizeScraperTraits(cartItems) {
-  var len = cartItems.length;
-  for (var i = 0; i < len; i++) {
-    var citem = cartItems[i];
-    citem.traits = {
-      "socio": citem.socio,
-      "features": citem.features,
-      "green": citem.green
-    };
-    delete citem["socio"];
-    delete citem["features"];
-    delete citem["green"];
-  }
-  return cartItems;
-}
-
 function processInitiation(analysis) {
   if (analysis.cartNumber) {
     console.log("inside process Initiation");
-    var params = querystring.stringify({
-      u: configs.GSA_USERNAME,
-      p: configs.GSA_PASSWORD
-    });
-    var options = {
-      url: configs.GSA_SCRAPE_URL + '/api/v1/carts/' + analysis.cartNumber + '?' + params
-    };
 
-    function callback(error, response, body) {
-      console.log("Back from Scraper");
-      // Here I'm going to pack socio, green, and features, which
-      // are known to the GSA SCRAPER into a single "JSON" object.
-      if (!error && response.statusCode == 200) {
-        console.log(body);
-        var info = JSON.parse(body);
-        var data = eval(info);
-        analysis.cartItems = generalizeScraperTraits(data['cartItems']);
+    scraper.scrape(analysis.cartNumber, function(error, data) {
+      if (!error) {
+        analysis.cartItems = data['cartItems'];
         analysis.cartName = data['cartName'];
-
         console.log(JSON.stringify(analysis, null, 4));
         executeInitiationMailDelivery('/send_cart', analysis);
-      } else {
-        console.log("error = " + error);
-        console.log("statusCode = " + response.statusCode);
       }
-    }
-    request(options, callback);
+    });
   }
 }
 
