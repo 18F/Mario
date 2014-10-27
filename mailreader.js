@@ -215,8 +215,8 @@ function processInitiation(analysis) {
   if (analysis.cartNumber) {
     console.log("inside process Initiation");
     var params = querystring.stringify({
-      u: configs().GSA_USERNAME,
-      p: configs().GSA_PASSWORD
+      u: configs.GSA_USERNAME,
+      p: configs.GSA_PASSWORD
     });
     var options = {
       url: configs.GSA_SCRAPE_URL + '/api/v1/carts/' + analysis.cartNumber + '?' + params
