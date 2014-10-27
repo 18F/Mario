@@ -199,13 +199,11 @@ function processInitiation(analysis) {
   if (analysis.cartNumber) {
     console.log("inside process Initiation");
 
-    scraper.scrape(analysis.cartNumber, function(error, data) {
-      if (!error) {
-        analysis.cartItems = data.cartItems;
-        analysis.cartName = data.cartName;
-        console.log(JSON.stringify(analysis, null, 4));
-        executeInitiationMailDelivery('/send_cart', analysis);
-      }
+    scraper.scrape(analysis.cartNumber).then(function(data) {
+      analysis.cartItems = data.cartItems;
+      analysis.cartName = data.cartName;
+      console.log(JSON.stringify(analysis, null, 4));
+      executeInitiationMailDelivery('/send_cart', analysis);
     });
   }
 }

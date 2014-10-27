@@ -24,7 +24,7 @@ describe('scraper.scrape()', function() {
       get('/api/v1/carts/123?u=user&p=password').
       reply(200, json);
 
-    scraper.scrape(123, function(error, data) {
+    scraper.scrape(123).then(function(data) {
       expect(data.cartItems[0]).toEqual({
         description: '7520014512267,PENCIL',
         details: "Direct Delivery 2 days shipped ARO",
@@ -50,8 +50,8 @@ describe('scraper.scrape()', function() {
       get('/api/v1/carts/123?u=user&p=password').
       reply(500);
 
-    scraper.scrape(123, function(error, data) {
-      expect(error).not.toBeNil();
+    scraper.scrape(123).then(function(response) {
+      expect(response.status).toEqual(500);
       done();
     });
   });
