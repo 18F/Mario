@@ -12,10 +12,14 @@
     "util": ">= 0.10.3",
     "mailparser": ">= 0.4.x",
     "nodemailer": ">= 0.6.x",
-    "jasmine-node": ">= 1.14.x",
     "js-yaml": ">= 1.2"
   },
   "scripts": {
     "test": "jasmine-node spec/*Spec.js"
+  },
+  "devDependencies": {
+    "jasmine-node": "^2.0.0",
+    "nock": "^0.48.1",
+    "rewire": "^2.1.0"
   }
 }
