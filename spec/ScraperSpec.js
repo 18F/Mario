@@ -44,4 +44,15 @@ describe('scraper.scrape()', function() {
       done();
     });
   });
+
+  it("handles errors gracefully", function(done) {
+    nock('http://localhost:5000').
+      get('/api/v1/carts/123?u=user&p=password').
+      reply(500);
+
+    scraper.scrape(123, function(error, data) {
+      expect(error).not.toBeNil();
+      done();
+    });
+  });
 });
