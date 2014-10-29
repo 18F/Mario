@@ -2,6 +2,7 @@
 var http = require('http');
 var request = require('request');
 var scraper = require('./lib/scraper');
+var EmailAnalysis = require('./lib/emailAnalysis');
 var Imap = require('imap');
 var inspect = require('util').inspect;
 
@@ -87,16 +88,6 @@ function openInbox(cb) {
 // Currently these are operating on the COMPLETE
 // email message.  This is very inefficient, and
 // can be made significantly better which the time comes.
-
-EmailAnalysis = function EmailAnalysis() {
-  this.cartNumber = "";
-  this.category = "";
-  this.attention = "";
-  this.fromAddress = "";
-  this.gsaUserName = "";
-};
-
-EmailAnalysis.prototype = new EmailAnalysis();
 
 // This is rather an ugly way of doing this...
 // all of these regexs could be made more efficient but
@@ -298,7 +289,7 @@ imap.once('ready', function() {
 
 imap.once('error', function(err) {
   console.log('IMAP ERROR');
-  console.log(err);
+  console.log("%j", err);
 });
 
 imap.once('end', function() {
