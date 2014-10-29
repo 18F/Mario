@@ -1,3 +1,5 @@
+require('./setup');
+
 var expect = require('expect.js');
 var mailReader = require('../mailreader');
 

@@ -1,3 +1,5 @@
+require('./setup');
+
 var expect = require('expect.js');
 var fs = require('fs');
 var nock = require('nock');
@@ -11,14 +13,6 @@ scraper.__set__('configs', {
 });
 
 describe('scraper.scrape()', function() {
-  beforeEach(function(){
-    nock.disableNetConnect();
-  });
-
-  afterEach(function(){
-    nock.enableNetConnect();
-  });
-
   it("transforms the data", function() {
     var json = fs.readFileSync('spec/data/cart.json');
     nock('http://localhost:5000').
