@@ -1,3 +1,4 @@
+var expect = require('expect.js');
 var fs = require('fs');
 var nock = require('nock');
 var rewire = require('rewire');
@@ -18,14 +19,14 @@ describe('scraper.scrape()', function() {
     nock.enableNetConnect();
   });
 
-  it("transforms the data", function(done) {
+  it("transforms the data", function() {
     var json = fs.readFileSync('spec/data/cart.json');
     nock('http://localhost:5000').
       get('/api/v1/carts/123?u=user&p=password').
       reply(200, json);
 
-    scraper.scrape(123).then(function(data) {
-      expect(data.cartItems[0]).toEqual({
+    return scraper.scrape(123).then(function(data) {
+      expect(data.cartItems[0]).to.eql({
         description: '7520014512267,PENCIL',
         details: "Direct Delivery 2 days shipped ARO",
         traits: {
@@ -40,19 +41,16 @@ describe('scraper.scrape()', function() {
         url: 'https://gsaadvantage.gov/advantage/catalog/product_detail.do?&oid=735196277&baseOid=&bpaNumber=',
         vendor: "NORTHEAST OFFICE SUPPLY CO. LLC."
       });
-
-      done();
     });
   });
 
-  it("handles errors gracefully", function(done) {
+  it("handles errors gracefully", function() {
     nock('http://localhost:5000').
       get('/api/v1/carts/123?u=user&p=password').
       reply(500);
 
-    scraper.scrape(123).then(function(response) {
-      expect(response.status).toEqual(500);
-      done();
+    return scraper.scrape(123).catch(function(response) {
+      expect(response.statusCode).to.eql(500);
     });
   });
 });
