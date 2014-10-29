@@ -1,3 +1,4 @@
+var expect = require('expect.js');
 var mailReader = require('../mailreader');
 
 describe("MailReader", function() {
@@ -22,7 +23,7 @@ describe("MailReader", function() {
 
     describe("#analyzeCategory", function(){
       it("returns null", function(){
-        expect(mailReader.analyzeCategory(mail)).toBeNull();
+        expect(mailReader.analyzeCategory(mail)).to.eql(null);
       });
     });
 
