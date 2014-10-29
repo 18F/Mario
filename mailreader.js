@@ -1,7 +1,7 @@
 // Now need to add the
 var http = require('http');
 var request = require('request');
-var querystring = require('querystring');
+var scraper = require('./lib/scraper');
 var Imap = require('imap');
 var inspect = require('util').inspect;
 
@@ -20,7 +20,7 @@ var configs = require('./configs');
 // Get the C2 yml, or throw exception on error
 try {
   var c2_doc = yaml.safeLoad(fs.readFileSync(configs.C2_APPLICATION_YML_PATH, 'utf8'));
-  var c2_rel_doc = c2_doc["constants"];
+  var c2_rel_doc = c2_doc.constants;
 } catch (e) {
   console.log("Existing because couldn't find C2 yml file");
   process.exit();
@@ -29,7 +29,7 @@ try {
 // Get the Mario yml, or throw exception on error
 try {
   var mario_doc = yaml.safeLoad(fs.readFileSync(configs.GSA_ADVANTAGE_PATH, 'utf8'));
-  var mario_rel_doc = mario_doc["constants"];
+  var mario_rel_doc = mario_doc.constants;
 } catch (e) {
   console.log("Existing because couldn't find mario yml file");
   process.exit();
@@ -94,9 +94,9 @@ EmailAnalysis = function EmailAnalysis() {
   this.attention = "";
   this.fromAddress = "";
   this.gsaUserName = "";
-}
+};
 
-EmailAnalysis.prototype = new EmailAnalysis;
+EmailAnalysis.prototype = new EmailAnalysis();
 
 // This is rather an ugly way of doing this...
 // all of these regexs could be made more efficient but
@@ -135,7 +135,7 @@ function analyzeCategory(mail_object) {
   console.log("subject = " + mail_object.subject);
   console.log("cartNumber = " + initiationCartNumber);
   if (initiationCartNumber) {
-    if (configs.MODE == "debug") {
+    if (configs.MODE === "debug") {
       console.log("Total initiation email = " + str);
     }
     analysis.category = "initiation";
@@ -185,7 +185,7 @@ function executeInitiationMailDelivery(path, analysis) {
     console.log("callback from Ruby:" + path);
     console.log("error:" + error);
 
-    if (!error && response.statusCode == 200) {
+    if (!error && response.statusCode === 200) {
       console.log(body);
     }
   }
@@ -195,52 +195,16 @@ function executeInitiationMailDelivery(path, analysis) {
   request(options, callback);
 }
 
-function generalizeScraperTraits(cartItems) {
-  var len = cartItems.length;
-  for (var i = 0; i < len; i++) {
-    var citem = cartItems[i];
-    citem.traits = {
-      "socio": citem.socio,
-      "features": citem.features,
-      "green": citem.green
-    };
-    delete citem["socio"];
-    delete citem["features"];
-    delete citem["green"];
-  }
-  return cartItems;
-}
-
 function processInitiation(analysis) {
   if (analysis.cartNumber) {
     console.log("inside process Initiation");
-    var params = querystring.stringify({
-      u: configs().GSA_USERNAME,
-      p: configs().GSA_PASSWORD
+
+    scraper.scrape(analysis.cartNumber).then(function(data) {
+      analysis.cartItems = data.cartItems;
+      analysis.cartName = data.cartName;
+      console.log(JSON.stringify(analysis, null, 4));
+      executeInitiationMailDelivery('/send_cart', analysis);
     });
-    var options = {
-      url: configs.GSA_SCRAPE_URL + '/api/v1/carts/' + analysis.cartNumber + '?' + params
-    };
-
-    function callback(error, response, body) {
-      console.log("Back from Scraper");
-      // Here I'm going to pack socio, green, and features, which
-      // are known to the GSA SCRAPER into a single "JSON" object.
-      if (!error && response.statusCode == 200) {
-        console.log(body);
-        var info = JSON.parse(body);
-        var data = eval(info);
-        analysis.cartItems = generalizeScraperTraits(data['cartItems']);
-        analysis.cartName = data['cartName'];
-
-        console.log(JSON.stringify(analysis, null, 4));
-        executeInitiationMailDelivery('/send_cart', analysis);
-      } else {
-        console.log("error = " + error);
-        console.log("statusCode = " + response.statusCode);
-      }
-    }
-    request(options, callback);
   }
 }
 
@@ -258,7 +222,7 @@ imap.once('ready', function() {
     }
     imap.search(['UNSEEN'], function(err, results) {
       if (err) throw err;
-      if (results == null || results.length == 0) {
+      if (!results || results.length === 0) {
         console.log("Nothing to fetch!");
         console.log(err);
         // It's okay to kill here because presumably we have nothing to do..
@@ -309,13 +273,13 @@ imap.once('ready', function() {
             var analysis = analyzeCategory(mail_object);
             if (!analysis) {
               console.log('Cannot categorize, doing nothing!');
-            } else if (analysis.category == "initiation") {
+            } else if (analysis.category === "initiation") {
               processInitiation(analysis);
-            } else if (analysis.category == "approvalreply") {
+            } else if (analysis.category === "approvalreply") {
               processApprovalReply(analysis);
             } else {
               console.log('Unimplemented Category:' + analysis.category);
-            };
+            }
 
           });
           mailparser.write(GLOBAL_MESSAGES[i]);

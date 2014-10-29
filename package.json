@@ -7,15 +7,20 @@
     "url": "https://github.com/18F/Mario.git"
   },
   "dependencies": {
-    "request": ">= 2.x.x",
     "imap": ">= 0.8.x",
-    "util": ">= 0.10.3",
+    "js-yaml": ">= 1.2",
     "mailparser": ">= 0.4.x",
     "nodemailer": ">= 0.6.x",
-    "jasmine-node": ">= 1.14.x",
-    "js-yaml": ">= 1.2"
+    "q-io": "^1.11.5",
+    "request": ">= 2.x.x",
+    "util": ">= 0.10.3"
   },
   "scripts": {
     "test": "jasmine-node spec/*Spec.js"
+  },
+  "devDependencies": {
+    "jasmine-node": "^2.0.0",
+    "nock": "^0.48.1",
+    "rewire": "^2.1.0"
   }
 }
