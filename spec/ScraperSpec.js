@@ -50,8 +50,8 @@ describe('scraper.scrape()', function() {
       get('/api/v1/carts/123?u=user&p=password').
       reply(500);
 
-    scraper.scrape(123).then(function(response) {
-      expect(response.status).toEqual(500);
+    scraper.scrape(123).catch(function(response) {
+      expect(response.statusCode).toEqual(500);
       done();
     });
   });

@@ -11,8 +11,8 @@
     "js-yaml": ">= 1.2",
     "mailparser": ">= 0.4.x",
     "nodemailer": ">= 0.6.x",
-    "q-io": "^1.11.5",
     "request": ">= 2.x.x",
+    "request-promise": "^0.2.4",
     "util": ">= 0.10.3"
   },
   "scripts": {
