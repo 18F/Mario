@@ -7,7 +7,7 @@ var scraper = rewire('../lib/scraper');
 scraper.__set__('configs', {
   GSA_USERNAME: 'user',
   GSA_PASSWORD: 'password',
-  GSA_SCRAPE_URL: 'http://localhost:5000'
+  GSA_SCRAPE_URL: 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py'
 });
 
 describe('scraper.scrape()', function() {
@@ -21,8 +21,8 @@ describe('scraper.scrape()', function() {
 
   it("transforms the data", function() {
     var json = fs.readFileSync('spec/data/cart.json');
-    nock('http://localhost:5000').
-      get('/api/v1/carts/123?u=user&p=password').
+    nock('http://gsa-advantage-scraper').
+      get('/cgi-bin/gsa-adv-cart.py?u=user&p=password&cart_id=123').
       reply(200, json);
 
     return scraper.scrape(123).then(function(data) {
@@ -45,9 +45,9 @@ describe('scraper.scrape()', function() {
   });
 
   it("handles errors gracefully", function() {
-    nock('http://localhost:5000').
-      get('/api/v1/carts/123?u=user&p=password').
-      reply(500);
+    nock('http://gsa-advantage-scraper').
+      get('/cgi-bin/gsa-adv-cart.py?u=user&p=password&cart_id=123').
+      reply(500, {});
 
     return scraper.scrape(123).catch(function(response) {
       expect(response.statusCode).to.eql(500);
