@@ -12,46 +12,12 @@ var fs = require('fs');
 var MailParser = require("mailparser").MailParser;
 
 // mail sending stuff copied from mailsender.js...
-fs = require('fs');
+var fs = require('fs');
 var http = require('http');
 var nodemailer = require("nodemailer");
 var configs = require('./configs');
-
-
-// Get the C2 yml, or throw exception on error
-try {
-  var c2_doc = yaml.safeLoad(fs.readFileSync(configs.C2_APPLICATION_YML_PATH, 'utf8'));
-  var c2_rel_doc = c2_doc.constants;
-} catch (e) {
-  console.log("Existing because couldn't find C2 yml file");
-  process.exit();
-}
-
-// Get the Mario yml, or throw exception on error
-try {
-  var mario_doc = yaml.safeLoad(fs.readFileSync(configs.GSA_ADVANTAGE_PATH, 'utf8'));
-  var mario_rel_doc = mario_doc.constants;
-} catch (e) {
-  console.log("Existing because couldn't find mario yml file");
-  process.exit();
-}
-
-var approval_regexp = c2_rel_doc.email_title_for_approval_request_reg_exp;
-
-console.log(mario_rel_doc);
-
-var cart_id_from_GSA_Advantage = new RegExp(mario_rel_doc.cart_id_from_GSA_Advantage, "gm");
-var atn_from_gsa_advantage = new RegExp(mario_rel_doc.atn_from_gsa_advantage, "gm");
-var email_from_gsa_advantage = new RegExp(mario_rel_doc.email_from_gsa_advantage, "gm");
-var init_comment_from_gsa = new RegExp(mario_rel_doc.init_comment_from_gsa, "gm");
-
-var reject_reg_exp = new RegExp(c2_rel_doc.reject_reg_exp, "gm");
-var approve_reg_exp = new RegExp(c2_rel_doc.approve_reg_exp, "gm");
-var reject_comment_reg_exp = new RegExp(c2_rel_doc.reject_comment_reg_exp, "gm");
-var approve_comment_reg_exp = new RegExp(c2_rel_doc.approve_comment_reg_exp, "gm");
-var reply_comment_reg_exp = new RegExp(c2_rel_doc.reply_comment_reg_exp, "gm");
-
-var approval_identifier = new RegExp(approval_regexp);
+var C2 = require('./lib/c2Constants');
+var GSA = require('./lib/gsaAdvantage');
 
 var DYNO_CART_SENDER = configs.DYNO_CART_SENDER;
 var COMMUNICART_DOT_SENDER = configs.COMMUNICART_DOT_SENDER;
@@ -102,8 +68,8 @@ function parseCompleteEmail(str, reg) {
 }
 
 function parseAtnFromGSAAdvantage(str) {
-  var attn = parseCompleteEmail(str, atn_from_gsa_advantage);
-  var email = parseCompleteEmail(attn, email_from_gsa_advantage);
+  var attn = parseCompleteEmail(str, GSA.atn);
+  var email = parseCompleteEmail(attn, GSA.email);
   return {
     "attn": attn,
     "email": email
@@ -119,7 +85,7 @@ function analyzeCategory(mail_object) {
   // This string technically comes from Advantage, not C2---but perhaps
   // We should move it into application.yml anyway!
   //    var reg = /GSA Advantage! cart # (\d+)/gm;
-  var initiationCartNumber = parseCompleteEmail(mail_object.subject, cart_id_from_GSA_Advantage);
+  var initiationCartNumber = parseCompleteEmail(mail_object.subject, GSA.cart_id);
 
   console.log("html = " + mail_object.html);
   console.log("text = " + mail_object.text);
@@ -134,25 +100,25 @@ function analyzeCategory(mail_object) {
     attentionParsed = parseAtnFromGSAAdvantage(mail_object.html);
     analysis.approvalGroup = attentionParsed.attn;
     analysis.email = attentionParsed.email;
-    analysis.initiationComment = parseCompleteEmail(mail_object.html, init_comment_from_gsa);
+    analysis.initiationComment = parseCompleteEmail(mail_object.html, GSA.init_comment);
     console.log("cart initiation");
     consolePrintJSON(analysis);
     return analysis;
   } else {
     var approvalCartNumber = parseCompleteEmail(mail_object.subject,
-      approval_identifier);
+      C2.approval_identifier);
     if (approvalCartNumber) {
       analysis.cartNumber = approvalCartNumber;
       analysis.category = "approvalreply";
       analysis.fromAddress = mail_object.from[0].address;
       analysis.gsaUsername = mail_object.to[0].name;
       analysis.date = mail_object.date;
-      analysis.approve = parseCompleteEmail(mail_object.text, approve_reg_exp);
-      analysis.disapprove = parseCompleteEmail(mail_object.text, reject_reg_exp);
+      analysis.approve = parseCompleteEmail(mail_object.text, C2.approve_reg_exp);
+      analysis.disapprove = parseCompleteEmail(mail_object.text, C2.reject_reg_exp);
       analysis.comment = analysis.approve ?
-        parseCompleteEmail(mail_object.text, approve_comment_reg_exp) :
-        parseCompleteEmail(mail_object.text, reject_comment_reg_exp);
-      analysis.humanResponseText = parseCompleteEmail(mail_object.text, reply_comment_reg_exp);
+        parseCompleteEmail(mail_object.text, C2.approve_comment_reg_exp) :
+        parseCompleteEmail(mail_object.text, C2.reject_comment_reg_exp);
+      analysis.humanResponseText = parseCompleteEmail(mail_object.text, C2.reply_comment_reg_exp);
       console.log("approval request");
       consolePrintJSON(analysis);
       return analysis;
