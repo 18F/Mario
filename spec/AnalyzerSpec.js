@@ -1,7 +1,15 @@
 var expect = require('expect.js');
-var mailReader = require('../mailreader');
+var nock = require('nock');
+var analyzer = require('../lib/analyzer');
 
-describe("MailReader", function() {
+describe("analyzer.analyzeCategory()", function() {
+  beforeEach(function(){
+    nock.disableNetConnect();
+  });
+
+  afterEach(function(){
+    nock.enableNetConnect();
+  });
 
   describe("Reading an approval email", function() {
     beforeEach(function() {
@@ -23,7 +31,7 @@ describe("MailReader", function() {
 
     describe("#analyzeCategory", function(){
       it("returns null", function(){
-        expect(mailReader.analyzeCategory(mail)).to.eql(null);
+        expect(analyzer.analyzeCategory(mail)).to.eql(null);
       });
     });
 
