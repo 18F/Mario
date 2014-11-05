@@ -175,7 +175,8 @@ function executeInitiationMailDelivery(path, analysis) {
     uri: configs.C2_SERVER_ENDPOINT + path, //TODO: Configuration file for this
     method: 'POST',
     json: analysis,
-    path: ""
+    path: "",
+    headers: {'X-Api-Key': configs.C2_API_KEY}
   };
 
   // Really we don't have anything to do, though
