@@ -306,6 +306,9 @@ imap.once('end', function() {
 });
 
 
-imap.connect();
-
-exports.analyzeCategory = analyzeCategory;
+// don't run if file isn't run directly (e.g. during test coverage check)
+if (require.main === module) {
+  imap.connect();
+} else {
+  exports.analyzeCategory = analyzeCategory;
+}
