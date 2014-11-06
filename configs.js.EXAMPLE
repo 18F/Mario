@@ -1,16 +1,16 @@
 module.exports = {
-  'MODE': process.env.NODE_ENV,
-  'DYNO_CART_SENDER': 'communicart.test@gmail.com',
-  'COMMUNICART_DOT_SENDER': process.env.COMMUNICART_DOT_SENDER,
-  'GSA_SCRAPE_URL': 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
-  'GSA_PASSWORD': process.env.GSA_PASSWORD,
-  'GSA_USERNAME': process.env.GSA_USERNAME,
-  'SIM_MAP_USER_EMAIL': {
-    'SOMEUSER': 'example.user@some-dot-gov.gov'
+  MODE: process.env.NODE_ENV,
+  DYNO_CART_SENDER: 'communicart.test@gmail.com',
+  COMMUNICART_DOT_SENDER: process.env.COMMUNICART_DOT_SENDER,
+  GSA_SCRAPE_URL: 'http://gsa-advantage-scraper/cgi-bin/gsa-adv-cart.py',
+  GSA_PASSWORD: process.env.GSA_PASSWORD,
+  GSA_USERNAME: process.env.GSA_USERNAME,
+  SIM_MAP_USER_EMAIL: {
+    SOMEUSER: 'example.user@some-dot-gov.gov'
   },
-  'C2_SERVER_ENDPOINT': 'http://localhost:3000',
-  'C2_API_KEY': '1y2o3u4r5a6p7i8k9e1y0',
-  'C2_APPLICATION_YML_PATH': '../c2/config/c2_mario_constants.yml',
-  'LEAVE_EMAIL_IN_PLACE': false,
-  'GSA_ADVANTAGE_PATH': 'gsa_advantage.yml'
+  C2_SERVER_ENDPOINT: 'http://localhost:3000',
+  C2_API_KEY: '1y2o3u4r5a6p7i8k9e1y0',
+  C2_APPLICATION_YML_PATH: '../c2/config/c2_mario_constants.yml',
+  LEAVE_EMAIL_IN_PLACE: false,
+  GSA_ADVANTAGE_PATH: 'gsa_advantage.yml'
 };
