@@ -48,6 +48,9 @@ GSA_PASSWORD # password used by the scraper to pass to GSA Advantage
 
 DYNO_CART_SENDER # email address to read from
 COMMUNICART_DOT_SENDER # password for the DYNO_CART_SENDER email
+
+C2_SERVER_ENDPOINT # domain that points to the C2 API
+C2_API_KEY # API key assigned to your application for accessing the C2 API. To request a key, please contact <communicart-info@gsa.gov>
 ```
 
 This mechanism avoids the danger of setting a password in the repo and
@@ -61,3 +64,9 @@ exported, and then Mario is invoked, piping the output to a log file.
 For debugging, you can of course invoke it by hand.  Additionally,
 there is a flag not to mark email as unread, which allows repetitive
 execution without a need to recreate the initiating emails.
+
+
+TESTING
+=======
+
+To run test suite, run `npm test`. To check code coverage, run `npm run-script coverage`.

@@ -33,3 +33,5 @@ configs.js
 node_modules/
 config/deploy/*.rb
 
+coverage.html
+npm-debug.log
