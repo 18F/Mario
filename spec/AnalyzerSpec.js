@@ -1,15 +1,26 @@
 require('./setup');
 
 var expect = require('expect.js');
+var mockery = require('mockery');
 var nock = require('nock');
-var analyzer = require('../lib/analyzer');
 
 describe("analyzer.analyzeCategory()", function() {
+  var analyzer;
+
   beforeEach(function(){
     nock.disableNetConnect();
+    mockery.enable({
+      warnOnUnregistered: false
+    });
+
+    mockery.registerMock('./c2Constants', {
+      approval_identifier: /^.*Communicart Approval Request from.*: Please review Cart #(\\d+)/
+    });
+    analyzer = require('../lib/analyzer');
   });
 
   afterEach(function(){
+    mockery.deregisterAll();
     nock.enableNetConnect();
   });
 
