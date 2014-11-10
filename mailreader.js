@@ -2,6 +2,7 @@
 var http = require('http');
 var request = require('request');
 var scraper = require('./lib/scraper');
+var analyzer = require('./lib/analyzer');
 var Imap = require('imap');
 var inspect = require('util').inspect;
 
@@ -11,46 +12,12 @@ var fs = require('fs');
 var MailParser = require("mailparser").MailParser;
 
 // mail sending stuff copied from mailsender.js...
-fs = require('fs');
+var fs = require('fs');
 var http = require('http');
 var nodemailer = require("nodemailer");
 var configs = require('./configs');
-
-
-// Get the C2 yml, or throw exception on error
-try {
-  var c2_doc = yaml.safeLoad(fs.readFileSync(configs.C2_APPLICATION_YML_PATH, 'utf8'));
-  var c2_rel_doc = c2_doc.constants;
-} catch (e) {
-  console.log("Existing because couldn't find C2 yml file");
-  process.exit();
-}
-
-// Get the Mario yml, or throw exception on error
-try {
-  var mario_doc = yaml.safeLoad(fs.readFileSync(configs.GSA_ADVANTAGE_PATH, 'utf8'));
-  var mario_rel_doc = mario_doc.constants;
-} catch (e) {
-  console.log("Existing because couldn't find mario yml file");
-  process.exit();
-}
-
-var approval_regexp = c2_rel_doc.email_title_for_approval_request_reg_exp;
-
-console.log(mario_rel_doc);
-
-var cart_id_from_GSA_Advantage = new RegExp(mario_rel_doc.cart_id_from_GSA_Advantage, "gm");
-var atn_from_gsa_advantage = new RegExp(mario_rel_doc.atn_from_gsa_advantage, "gm");
-var email_from_gsa_advantage = new RegExp(mario_rel_doc.email_from_gsa_advantage, "gm");
-var init_comment_from_gsa = new RegExp(mario_rel_doc.init_comment_from_gsa, "gm");
-
-var reject_reg_exp = new RegExp(c2_rel_doc.reject_reg_exp, "gm");
-var approve_reg_exp = new RegExp(c2_rel_doc.approve_reg_exp, "gm");
-var reject_comment_reg_exp = new RegExp(c2_rel_doc.reject_comment_reg_exp, "gm");
-var approve_comment_reg_exp = new RegExp(c2_rel_doc.approve_comment_reg_exp, "gm");
-var reply_comment_reg_exp = new RegExp(c2_rel_doc.reply_comment_reg_exp, "gm");
-
-var approval_identifier = new RegExp(approval_regexp);
+var C2 = require('./lib/c2Constants');
+var GSA = require('./lib/gsaAdvantage');
 
 var DYNO_CART_SENDER = configs.DYNO_CART_SENDER;
 var COMMUNICART_DOT_SENDER = configs.COMMUNICART_DOT_SENDER;
@@ -87,88 +54,6 @@ function openInbox(cb) {
 // Currently these are operating on the COMPLETE
 // email message.  This is very inefficient, and
 // can be made significantly better which the time comes.
-
-EmailAnalysis = function EmailAnalysis() {
-  this.cartNumber = "";
-  this.category = "";
-  this.attention = "";
-  this.fromAddress = "";
-  this.gsaUserName = "";
-};
-
-EmailAnalysis.prototype = new EmailAnalysis();
-
-// This is rather an ugly way of doing this...
-// all of these regexs could be made more efficient but
-// focusing on the proper parts, and not runing over the whole
-// email---improvement for the future.
-function parseCompleteEmail(str, reg) {
-  var myArray = reg.exec(str);
-  if (myArray) {
-    return myArray[1];
-  }
-  return null;
-}
-
-function parseAtnFromGSAAdvantage(str) {
-  var attn = parseCompleteEmail(str, atn_from_gsa_advantage);
-  var email = parseCompleteEmail(attn, email_from_gsa_advantage);
-  return {
-    "attn": attn,
-    "email": email
-  };
-}
-
-function consolePrintJSON(analysis) {
-  console.log(JSON.stringify(analysis, null, 4));
-}
-
-function analyzeCategory(mail_object) {
-  var analysis = new EmailAnalysis();
-  // This string technically comes from Advantage, not C2---but perhaps
-  // We should move it into application.yml anyway!
-  //    var reg = /GSA Advantage! cart # (\d+)/gm;
-  var initiationCartNumber = parseCompleteEmail(mail_object.subject, cart_id_from_GSA_Advantage);
-
-  console.log("html = " + mail_object.html);
-  console.log("text = " + mail_object.text);
-  console.log("subject = " + mail_object.subject);
-  console.log("cartNumber = " + initiationCartNumber);
-  if (initiationCartNumber) {
-    if (configs.MODE === "debug") {
-      console.log("Total initiation email = " + str);
-    }
-    analysis.category = "initiation";
-    analysis.cartNumber = initiationCartNumber;
-    attentionParsed = parseAtnFromGSAAdvantage(mail_object.html);
-    analysis.approvalGroup = attentionParsed.attn;
-    analysis.email = attentionParsed.email;
-    analysis.initiationComment = parseCompleteEmail(mail_object.html, init_comment_from_gsa);
-    console.log("cart initiation");
-    consolePrintJSON(analysis);
-    return analysis;
-  } else {
-    var approvalCartNumber = parseCompleteEmail(mail_object.subject,
-      approval_identifier);
-    if (approvalCartNumber) {
-      analysis.cartNumber = approvalCartNumber;
-      analysis.category = "approvalreply";
-      analysis.fromAddress = mail_object.from[0].address;
-      analysis.gsaUsername = mail_object.to[0].name;
-      analysis.date = mail_object.date;
-      analysis.approve = parseCompleteEmail(mail_object.text, approve_reg_exp);
-      analysis.disapprove = parseCompleteEmail(mail_object.text, reject_reg_exp);
-      analysis.comment = analysis.approve ?
-        parseCompleteEmail(mail_object.text, approve_comment_reg_exp) :
-        parseCompleteEmail(mail_object.text, reject_comment_reg_exp);
-      analysis.humanResponseText = parseCompleteEmail(mail_object.text, reply_comment_reg_exp);
-      console.log("approval request");
-      consolePrintJSON(analysis);
-      return analysis;
-    }
-  }
-  return null;
-}
 
 function executeInitiationMailDelivery(path, analysis) {
   var options = {
@@ -271,7 +156,7 @@ imap.once('ready', function() {
 
           // setup an event listener when the parsing finishes
           mailparser.on("end", function(mail_object) {
-            var analysis = analyzeCategory(mail_object);
+            var analysis = analyzer.analyzeCategory(mail_object);
             if (!analysis) {
               console.log('Cannot categorize, doing nothing!');
             } else if (analysis.category === "initiation") {
@@ -299,7 +184,7 @@ imap.once('ready', function() {
 
 imap.once('error', function(err) {
   console.log('IMAP ERROR');
-  console.log(err);
+  console.log("%j", err);
 });
 
 imap.once('end', function() {
@@ -310,6 +195,4 @@ imap.once('end', function() {
 // don't run if file isn't run directly (e.g. during test coverage check)
 if (require.main === module) {
   imap.connect();
-} else {
-  exports.analyzeCategory = analyzeCategory;
 }
