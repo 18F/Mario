@@ -61,6 +61,7 @@ function executeInitiationMailDelivery(path, analysis) {
     method: 'POST',
     json: analysis,
     path: "",
+    rejectUnauthorized: false,
     headers: {'X-Api-Key': configs.C2_API_KEY}
   };
 
