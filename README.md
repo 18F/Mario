@@ -14,7 +14,7 @@ Mario : What is this project?
 
 The basic purpose of Mario is to support the email processing of the
 Communicart (C2) diet.  We are using Mario as the Node.js-based mail
-reader.  It also invokes the gsa-advantage-scraper.
+reader.  It also invokes the [gsa-advantage-scraper](https://github.com/18F/gsa-advantage-scrape).
 
 We could have implemented this in the C2 rails application, and may
 still move that feature there.
@@ -25,8 +25,8 @@ any unread mail.  We use a cron job to run it every minute.
 This architecture allow us to keep C2 independent of the GSA
 Advantage.
 
-INSTALLATION
-============
+How to Install Mario
+===================
 
 1. Install Node.js 0.10
 1. Run `npm install`.
@@ -66,7 +66,7 @@ there is a flag not to mark email as unread, which allows repetitive
 execution without a need to recreate the initiating emails.
 
 
-TESTING
+How to Test Mario
 =======
 
-To run test suite, run `npm test`. To check code coverage, run `npm run-script coverage`.
+To run the test suite, run `npm test`. To check code coverage, run `npm run-script coverage`.
